@@ -52,6 +52,13 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Football theme colors
+				field: {
+					DEFAULT: 'hsl(var(--field-green))',
+					light: 'hsl(var(--field-light))'
+				},
+				goal: 'hsl(var(--goal-gold))',
+				assist: 'hsl(var(--assist-blue))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
