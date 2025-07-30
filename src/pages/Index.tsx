@@ -197,7 +197,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-6">
-            <StatsTable playerStats={playerStats} teams={teams} players={players} />
+            <StatsTable playerStats={playerStats} teams={teams} players={players} games={games} />
           </TabsContent>
 
           <TabsContent value="history" className="space-y-6">
