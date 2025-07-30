@@ -8,14 +8,21 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PlayerStats } from "@/types/football";
+import { PlayerStats, Team } from "@/types/football";
 import { Trophy, Target, Users } from "lucide-react";
 
 interface StatsTableProps {
   playerStats: PlayerStats[];
+  teams: Team[];
+  players: any[];
 }
 
-export const StatsTable = ({ playerStats }: StatsTableProps) => {
+export const StatsTable = ({ playerStats, teams, players }: StatsTableProps) => {
+  const getPlayerTeam = (playerId: string) => {
+    const player = players.find(p => p.id === playerId);
+    if (!player?.teamId) return null;
+    return teams.find(t => t.id === player.teamId);
+  };
   return (
     <Card>
       <CardHeader>
@@ -36,6 +43,7 @@ export const StatsTable = ({ playerStats }: StatsTableProps) => {
               <TableRow>
                 <TableHead>Posição</TableHead>
                 <TableHead>Jogador</TableHead>
+                <TableHead>Time</TableHead>
                 <TableHead className="text-center">Jogos</TableHead>
                 <TableHead className="text-center">Gols</TableHead>
                 <TableHead className="text-center">Assistências</TableHead>
@@ -66,6 +74,15 @@ export const StatsTable = ({ playerStats }: StatsTableProps) => {
                     )}
                   </TableCell>
                   <TableCell className="font-medium">{player.name}</TableCell>
+                  <TableCell>
+                    {getPlayerTeam(player.playerId) ? (
+                      <Badge variant="outline" className="text-xs">
+                        {getPlayerTeam(player.playerId)?.name}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">Sem time</span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-center">{player.gamesPlayed}</TableCell>
                   <TableCell className="text-center">
                     <div className="flex items-center justify-center gap-1">

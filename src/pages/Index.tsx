@@ -7,14 +7,27 @@ import { PlayerCard } from "@/components/PlayerCard";
 import { GameForm } from "@/components/GameForm";
 import { StatsTable } from "@/components/StatsTable";
 import { GamesList } from "@/components/GamesList";
-import { Users, Calendar, Trophy, Activity } from "lucide-react";
+import { TeamManager } from "@/components/TeamManager";
+import { Users, Calendar, Trophy, Activity, Shield } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
-  const { players, games, addPlayer, removePlayer, addGame, getPlayerStats } = useFootballData();
+  const { 
+    players, 
+    games, 
+    teams, 
+    addPlayer, 
+    removePlayer, 
+    addGame, 
+    getPlayerStats,
+    addTeam,
+    removeTeam,
+    addPlayerToTeam,
+    removePlayerFromTeam
+  } = useFootballData();
   const { toast } = useToast();
 
-  const handleAddPlayer = (playerData: { name: string; position: string }) => {
+  const handleAddPlayer = (playerData: { name: string; position: string; teamId?: string }) => {
     addPlayer(playerData);
     toast({
       title: "Jogador adicionado!",
@@ -54,7 +67,14 @@ const Index = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+          <Card>
+            <CardContent className="p-4 text-center">
+              <Shield className="h-8 w-8 mx-auto mb-2 text-primary" />
+              <p className="text-2xl font-bold">{teams.length}</p>
+              <p className="text-sm text-muted-foreground">Times</p>
+            </CardContent>
+          </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <Users className="h-8 w-8 mx-auto mb-2 text-primary" />
@@ -94,7 +114,11 @@ const Index = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="players" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="teams" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Times
+            </TabsTrigger>
             <TabsTrigger value="players" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Jogadores
@@ -113,10 +137,21 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
 
+          <TabsContent value="teams" className="space-y-6">
+            <TeamManager
+              teams={teams}
+              players={players}
+              onAddTeam={addTeam}
+              onRemoveTeam={removeTeam}
+              onAddPlayerToTeam={addPlayerToTeam}
+              onRemovePlayerFromTeam={removePlayerFromTeam}
+            />
+          </TabsContent>
+
           <TabsContent value="players" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-1">
-                <AddPlayerForm onAddPlayer={handleAddPlayer} />
+                <AddPlayerForm teams={teams} onAddPlayer={handleAddPlayer} />
               </div>
               
               <div className="lg:col-span-2">
@@ -162,7 +197,7 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-6">
-            <StatsTable playerStats={playerStats} />
+            <StatsTable playerStats={playerStats} teams={teams} players={players} />
           </TabsContent>
 
           <TabsContent value="history" className="space-y-6">

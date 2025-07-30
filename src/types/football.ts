@@ -1,7 +1,14 @@
+export interface Team {
+  id: string;
+  name: string;
+  players: string[]; // Array of player IDs
+}
+
 export interface Player {
   id: string;
   name: string;
   position: string;
+  teamId?: string;
   goals: number;
   assists: number;
   gamesPlayed: number;

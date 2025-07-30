@@ -4,9 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserPlus } from "lucide-react";
+import { Team } from "@/types/football";
+import { toast } from "sonner";
 
 interface AddPlayerFormProps {
-  onAddPlayer: (player: { name: string; position: string }) => void;
+  teams: Team[];
+  onAddPlayer: (player: { name: string; position: string; teamId?: string }) => void;
 }
 
 const positions = [
@@ -22,16 +25,23 @@ const positions = [
   "Centroavante"
 ];
 
-export const AddPlayerForm = ({ onAddPlayer }: AddPlayerFormProps) => {
+export const AddPlayerForm = ({ teams, onAddPlayer }: AddPlayerFormProps) => {
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
+  const [teamId, setTeamId] = useState<string>("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() && position) {
-      onAddPlayer({ name: name.trim(), position });
+      onAddPlayer({ 
+        name: name.trim(), 
+        position,
+        teamId: teamId || undefined
+      });
       setName("");
       setPosition("");
+      setTeamId("");
+      toast.success("Jogador adicionado com sucesso!");
     }
   };
 
@@ -69,8 +79,24 @@ export const AddPlayerForm = ({ onAddPlayer }: AddPlayerFormProps) => {
               </SelectContent>
             </Select>
           </div>
+
+          <div>
+            <Select value={teamId} onValueChange={setTeamId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Time (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {teams.map((team) => (
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
           <Button type="submit" className="w-full">
+            <UserPlus className="w-4 h-4 mr-2" />
             Adicionar Jogador
           </Button>
         </form>
