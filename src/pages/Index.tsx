@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useFootballData } from "@/hooks/useFootballData";
 import { AddPlayerForm } from "@/components/AddPlayerForm";
 import { PlayerCard } from "@/components/PlayerCard";
@@ -8,8 +9,9 @@ import { GameForm } from "@/components/GameForm";
 import { StatsTable } from "@/components/StatsTable";
 import { GamesList } from "@/components/GamesList";
 import { TeamManager } from "@/components/TeamManager";
-import { Users, Calendar, Trophy, Activity, Shield } from "lucide-react";
+import { Users, Calendar, Trophy, Activity, Shield, Download } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { exportStatsToExcel } from "@/utils/excelExport";
 
 const Index = () => {
   const { 
@@ -50,6 +52,14 @@ const Index = () => {
     toast({
       title: "Jogo registrado!",
       description: `Partida contra ${gameData.opponent} foi registrada.`,
+    });
+  };
+
+  const handleExportToExcel = () => {
+    exportStatsToExcel(playerStats, games, players, teams);
+    toast({
+      title: "Excel exportado!",
+      description: "As estatísticas foram exportadas com sucesso.",
     });
   };
 
@@ -197,6 +207,12 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-6">
+            <div className="flex justify-end mb-4">
+              <Button onClick={handleExportToExcel} className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Exportar para Excel
+              </Button>
+            </div>
             <StatsTable playerStats={playerStats} teams={teams} players={players} games={games} />
           </TabsContent>
 
