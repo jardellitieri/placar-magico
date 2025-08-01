@@ -68,7 +68,7 @@ export const exportStatsToExcel = (
       const isGoalkeeperInGame = game.events.some(event => event.playerId === gk.id);
       if (!isGoalkeeperInGame) return total;
       
-      return total + (game.isHome ? game.awayGoals : game.homeGoals);
+      return total + game.opponentGoals;
     }, 0);
 
     return {
@@ -86,8 +86,7 @@ export const exportStatsToExcel = (
   const gamesHistory = games.map(game => ({
     'Data': new Date(game.date).toLocaleDateString('pt-BR'),
     'Adversário': game.opponent,
-    'Local': game.isHome ? 'Casa' : 'Fora',
-    'Resultado': `${game.homeGoals} x ${game.awayGoals}`,
+    'Resultado': `${game.ourGoals} x ${game.opponentGoals}`,
     'Total de Eventos': game.events.length
   }));
 

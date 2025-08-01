@@ -5,45 +5,42 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Player, GameEvent } from "@/types/football";
+import { Player, GameEvent, Team } from "@/types/football";
 import { Calendar, Plus, Target, Users, Trash2 } from "lucide-react";
 
 interface GameFormProps {
   players: Player[];
+  teams: Team[];
   onAddGame: (game: {
     date: string;
     opponent: string;
-    homeGoals: number;
-    awayGoals: number;
-    isHome: boolean;
+    ourGoals: number;
+    opponentGoals: number;
     events: GameEvent[];
   }) => void;
 }
 
-export const GameForm = ({ players, onAddGame }: GameFormProps) => {
+export const GameForm = ({ players, teams, onAddGame }: GameFormProps) => {
   const [date, setDate] = useState("");
   const [opponent, setOpponent] = useState("");
-  const [homeGoals, setHomeGoals] = useState(0);
-  const [awayGoals, setAwayGoals] = useState(0);
-  const [isHome, setIsHome] = useState(true);
+  const [ourGoals, setOurGoals] = useState(0);
+  const [opponentGoals, setOpponentGoals] = useState(0);
   const [events, setEvents] = useState<GameEvent[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState("");
   const [eventType, setEventType] = useState<"goal" | "assist">("goal");
-  const [minute, setMinute] = useState("");
 
   const addEvent = () => {
-    if (selectedPlayer && minute) {
+    if (selectedPlayer) {
       const player = players.find(p => p.id === selectedPlayer);
       if (player) {
         const newEvent: GameEvent = {
           playerId: selectedPlayer,
           playerName: player.name,
           type: eventType,
-          minute: parseInt(minute)
+          minute: 0
         };
         setEvents(prev => [...prev, newEvent]);
         setSelectedPlayer("");
-        setMinute("");
       }
     }
   };
@@ -58,21 +55,18 @@ export const GameForm = ({ players, onAddGame }: GameFormProps) => {
       onAddGame({
         date,
         opponent,
-        homeGoals,
-        awayGoals,
-        isHome,
+        ourGoals,
+        opponentGoals,
         events
       });
       
       // Reset form
       setDate("");
       setOpponent("");
-      setHomeGoals(0);
-      setAwayGoals(0);
-      setIsHome(true);
+      setOurGoals(0);
+      setOpponentGoals(0);
       setEvents([]);
       setSelectedPlayer("");
-      setMinute("");
     }
   };
 
@@ -95,47 +89,45 @@ export const GameForm = ({ players, onAddGame }: GameFormProps) => {
               required
             />
             
-            <Input
-              placeholder="Adversário"
-              value={opponent}
-              onChange={(e) => setOpponent(e.target.value)}
-              required
-            />
+            <Select value={opponent} onValueChange={setOpponent}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o time adversário" />
+              </SelectTrigger>
+              <SelectContent>
+                {teams.map((team) => (
+                  <SelectItem key={team.id} value={team.name}>
+                    {team.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-3 gap-4 items-center">
-            <div className="text-center">
-              <Select value={isHome ? "home" : "away"} onValueChange={(value) => setIsHome(value === "home")}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="home">Casa</SelectItem>
-                  <SelectItem value="away">Fora</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="text-center text-sm text-muted-foreground">
+              PPFC
             </div>
             
             <div className="grid grid-cols-3 gap-2 items-center">
               <Input
                 type="number"
                 min="0"
-                value={homeGoals}
-                onChange={(e) => setHomeGoals(parseInt(e.target.value) || 0)}
+                value={ourGoals}
+                onChange={(e) => setOurGoals(parseInt(e.target.value) || 0)}
                 className="text-center"
               />
               <span className="text-center font-bold">X</span>
               <Input
                 type="number"
                 min="0"
-                value={awayGoals}
-                onChange={(e) => setAwayGoals(parseInt(e.target.value) || 0)}
+                value={opponentGoals}
+                onChange={(e) => setOpponentGoals(parseInt(e.target.value) || 0)}
                 className="text-center"
               />
             </div>
             
             <div className="text-center text-sm text-muted-foreground">
-              {isHome ? "Nós" : opponent} vs {isHome ? opponent : "Nós"}
+              {opponent || "Adversário"}
             </div>
           </div>
 
@@ -144,7 +136,7 @@ export const GameForm = ({ players, onAddGame }: GameFormProps) => {
           <div className="space-y-4">
             <h4 className="font-semibold">Eventos do Jogo</h4>
             
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
                 <SelectTrigger>
                   <SelectValue placeholder="Jogador" />
@@ -168,15 +160,6 @@ export const GameForm = ({ players, onAddGame }: GameFormProps) => {
                 </SelectContent>
               </Select>
               
-              <Input
-                type="number"
-                min="1"
-                max="120"
-                placeholder="Minuto"
-                value={minute}
-                onChange={(e) => setMinute(e.target.value)}
-              />
-              
               <Button type="button" onClick={addEvent} size="sm">
                 <Plus className="h-4 w-4" />
               </Button>
@@ -196,7 +179,6 @@ export const GameForm = ({ players, onAddGame }: GameFormProps) => {
                       <Badge variant={event.type === 'goal' ? 'default' : 'secondary'}>
                         {event.type === 'goal' ? 'Gol' : 'Assistência'}
                       </Badge>
-                      <span className="text-sm text-muted-foreground">{event.minute}'</span>
                     </div>
                     <Button
                       type="button"

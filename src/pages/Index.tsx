@@ -70,7 +70,7 @@ const Index = () => {
       <div className="container mx-auto p-4 max-w-7xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-field mb-2">⚽ Controle de Futebol</h1>
+          <h1 className="text-4xl font-bold text-field mb-2">⚽ Controle - PPFC</h1>
           <p className="text-lg text-muted-foreground">
             Gerencie jogadores, registre jogos e acompanhe estatísticas
           </p>
@@ -104,9 +104,9 @@ const Index = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <Trophy className="h-8 w-8 mx-auto mb-2 text-goal" />
-              <p className="text-2xl font-bold">
-                {games.reduce((total, game) => total + (game.isHome ? game.homeGoals : game.awayGoals), 0)}
-              </p>
+               <p className="text-2xl font-bold">
+                 {games.reduce((total, game) => total + game.ourGoals, 0)}
+               </p>
               <p className="text-sm text-muted-foreground">Gols Marcados</p>
             </CardContent>
           </Card>
@@ -202,7 +202,7 @@ const Index = () => {
                 </CardContent>
               </Card>
             ) : (
-              <GameForm players={players} onAddGame={handleAddGame} />
+              <GameForm players={players} teams={teams} onAddGame={handleAddGame} />
             )}
           </TabsContent>
 

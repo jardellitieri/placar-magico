@@ -49,7 +49,7 @@ export const StatsTable = ({ playerStats, teams, players, games }: StatsTablePro
       if (!isGoalkeeperInGame) return total;
       
       // Assumindo que o goleiro sofreu os gols do adversário
-      return total + (game.isHome ? game.awayGoals : game.homeGoals);
+      return total + game.opponentGoals;
     }, 0);
 
     return {

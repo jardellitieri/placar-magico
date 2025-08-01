@@ -28,15 +28,11 @@ export const GamesList = ({ games }: GamesListProps) => {
           <div className="space-y-4">
             {sortedGames.map((game) => {
               const date = new Date(game.date).toLocaleDateString('pt-BR');
-              const result = game.isHome 
-                ? `${game.homeGoals} x ${game.awayGoals}` 
-                : `${game.awayGoals} x ${game.homeGoals}`;
+              const result = `${game.ourGoals} x ${game.opponentGoals}`;
               
-              const isWin = game.isHome 
-                ? game.homeGoals > game.awayGoals
-                : game.awayGoals > game.homeGoals;
+              const isWin = game.ourGoals > game.opponentGoals;
               
-              const isDraw = game.homeGoals === game.awayGoals;
+              const isDraw = game.ourGoals === game.opponentGoals;
               
               return (
                 <div key={game.id} className="border rounded-lg p-4 space-y-3">
@@ -44,7 +40,7 @@ export const GamesList = ({ games }: GamesListProps) => {
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold">
-                          {game.isHome ? "vs" : "@"} {game.opponent}
+                          vs {game.opponent}
                         </h4>
                         <Badge 
                           variant={isWin ? "default" : isDraw ? "secondary" : "destructive"}
@@ -57,7 +53,7 @@ export const GamesList = ({ games }: GamesListProps) => {
                     <div className="text-right">
                       <p className="text-2xl font-bold">{result}</p>
                       <p className="text-xs text-muted-foreground">
-                        {game.isHome ? "Casa" : "Fora"}
+                        PPFC vs {game.opponent}
                       </p>
                     </div>
                   </div>
@@ -80,7 +76,7 @@ export const GamesList = ({ games }: GamesListProps) => {
                             >
                               {event.type === 'goal' ? 'Gol' : 'Assist'}
                             </Badge>
-                            <span className="text-muted-foreground">{event.minute}'</span>
+                            
                           </div>
                         ))}
                       </div>
