@@ -68,7 +68,9 @@ export const exportStatsToExcel = (
       const isGoalkeeperInGame = game.events.some(event => event.playerId === gk.id);
       if (!isGoalkeeperInGame) return total;
       
-      return total + game.opponentGoals;
+      // Para cada jogo, assumir que o goleiro sofreu os gols dos gols totais menos os do seu time
+      const goalsInGame = game.events.filter(e => e.type === 'goal' && e.playerId === gk.id).length;
+      return total + Math.max(0, (game.homeGoals + game.awayGoals) - goalsInGame);
     }, 0);
 
     return {
@@ -85,8 +87,9 @@ export const exportStatsToExcel = (
   // Aba 5: Histórico de Jogos
   const gamesHistory = games.map(game => ({
     'Data': new Date(game.date).toLocaleDateString('pt-BR'),
-    'Adversário': game.opponent,
-    'Resultado': `${game.ourGoals} x ${game.opponentGoals}`,
+    'Time da Casa': game.homeTeam,
+    'Time Visitante': game.awayTeam,
+    'Resultado': `${game.homeGoals} x ${game.awayGoals}`,
     'Total de Eventos': game.events.length
   }));
 

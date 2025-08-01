@@ -51,7 +51,7 @@ const Index = () => {
     addGame(gameData);
     toast({
       title: "Jogo registrado!",
-      description: `Partida contra ${gameData.opponent} foi registrada.`,
+      description: `Partida ${gameData.homeTeam} vs ${gameData.awayTeam} foi registrada.`,
     });
   };
 
@@ -101,15 +101,15 @@ const Index = () => {
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Trophy className="h-8 w-8 mx-auto mb-2 text-goal" />
-               <p className="text-2xl font-bold">
-                 {games.reduce((total, game) => total + game.ourGoals, 0)}
-               </p>
-              <p className="text-sm text-muted-foreground">Gols Marcados</p>
-            </CardContent>
-          </Card>
+           <Card>
+             <CardContent className="p-4 text-center">
+               <Trophy className="h-8 w-8 mx-auto mb-2 text-goal" />
+                <p className="text-2xl font-bold">
+                  {games.reduce((total, game) => total + game.homeGoals + game.awayGoals, 0)}
+                </p>
+               <p className="text-sm text-muted-foreground">Gols Total</p>
+             </CardContent>
+           </Card>
           
           <Card>
             <CardContent className="p-4 text-center">

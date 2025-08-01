@@ -28,11 +28,10 @@ export const GamesList = ({ games }: GamesListProps) => {
           <div className="space-y-4">
             {sortedGames.map((game) => {
               const date = new Date(game.date).toLocaleDateString('pt-BR');
-              const result = `${game.ourGoals} x ${game.opponentGoals}`;
+              const result = `${game.homeGoals} x ${game.awayGoals}`;
               
-              const isWin = game.ourGoals > game.opponentGoals;
-              
-              const isDraw = game.ourGoals === game.opponentGoals;
+              const homeWin = game.homeGoals > game.awayGoals;
+              const isDraw = game.homeGoals === game.awayGoals;
               
               return (
                 <div key={game.id} className="border rounded-lg p-4 space-y-3">
@@ -40,12 +39,12 @@ export const GamesList = ({ games }: GamesListProps) => {
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold">
-                          vs {game.opponent}
+                          {game.homeTeam} vs {game.awayTeam}
                         </h4>
                         <Badge 
-                          variant={isWin ? "default" : isDraw ? "secondary" : "destructive"}
+                          variant={homeWin ? "default" : isDraw ? "secondary" : "destructive"}
                         >
-                          {isWin ? "Vitória" : isDraw ? "Empate" : "Derrota"}
+                          {homeWin ? `${game.homeTeam} venceu` : isDraw ? "Empate" : `${game.awayTeam} venceu`}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">{date}</p>
@@ -53,7 +52,7 @@ export const GamesList = ({ games }: GamesListProps) => {
                     <div className="text-right">
                       <p className="text-2xl font-bold">{result}</p>
                       <p className="text-xs text-muted-foreground">
-                        PPFC vs {game.opponent}
+                        {game.homeTeam} vs {game.awayTeam}
                       </p>
                     </div>
                   </div>

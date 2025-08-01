@@ -24,9 +24,10 @@ export interface GameEvent {
 export interface Game {
   id: string;
   date: string;
-  opponent: string;
-  ourGoals: number;
-  opponentGoals: number;
+  homeTeam: string;
+  awayTeam: string;
+  homeGoals: number;
+  awayGoals: number;
   events: GameEvent[];
 }
 

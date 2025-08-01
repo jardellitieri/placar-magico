@@ -13,18 +13,20 @@ interface GameFormProps {
   teams: Team[];
   onAddGame: (game: {
     date: string;
-    opponent: string;
-    ourGoals: number;
-    opponentGoals: number;
+    homeTeam: string;
+    awayTeam: string;
+    homeGoals: number;
+    awayGoals: number;
     events: GameEvent[];
   }) => void;
 }
 
 export const GameForm = ({ players, teams, onAddGame }: GameFormProps) => {
   const [date, setDate] = useState("");
-  const [opponent, setOpponent] = useState("");
-  const [ourGoals, setOurGoals] = useState(0);
-  const [opponentGoals, setOpponentGoals] = useState(0);
+  const [homeTeam, setHomeTeam] = useState("");
+  const [awayTeam, setAwayTeam] = useState("");
+  const [homeGoals, setHomeGoals] = useState(0);
+  const [awayGoals, setAwayGoals] = useState(0);
   const [events, setEvents] = useState<GameEvent[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState("");
   const [eventType, setEventType] = useState<"goal" | "assist">("goal");
@@ -51,20 +53,22 @@ export const GameForm = ({ players, teams, onAddGame }: GameFormProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (date && opponent) {
+    if (date && homeTeam && awayTeam && homeTeam !== awayTeam) {
       onAddGame({
         date,
-        opponent,
-        ourGoals,
-        opponentGoals,
+        homeTeam,
+        awayTeam,
+        homeGoals,
+        awayGoals,
         events
       });
       
       // Reset form
       setDate("");
-      setOpponent("");
-      setOurGoals(0);
-      setOpponentGoals(0);
+      setHomeTeam("");
+      setAwayTeam("");
+      setHomeGoals(0);
+      setAwayGoals(0);
       setEvents([]);
       setSelectedPlayer("");
     }
@@ -81,7 +85,7 @@ export const GameForm = ({ players, teams, onAddGame }: GameFormProps) => {
       
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
               type="date"
               value={date}
@@ -89,9 +93,9 @@ export const GameForm = ({ players, teams, onAddGame }: GameFormProps) => {
               required
             />
             
-            <Select value={opponent} onValueChange={setOpponent}>
+            <Select value={homeTeam} onValueChange={setHomeTeam}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione o time adversário" />
+                <SelectValue placeholder="Time da Casa" />
               </SelectTrigger>
               <SelectContent>
                 {teams.map((team) => (
@@ -101,33 +105,46 @@ export const GameForm = ({ players, teams, onAddGame }: GameFormProps) => {
                 ))}
               </SelectContent>
             </Select>
+
+            <Select value={awayTeam} onValueChange={setAwayTeam}>
+              <SelectTrigger>
+                <SelectValue placeholder="Time Visitante" />
+              </SelectTrigger>
+              <SelectContent>
+                {teams.map((team) => (
+                  <SelectItem key={team.id} value={team.name} disabled={team.name === homeTeam}>
+                    {team.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-3 gap-4 items-center">
             <div className="text-center text-sm text-muted-foreground">
-              PPFC
+              {homeTeam || "Time da Casa"}
             </div>
             
             <div className="grid grid-cols-3 gap-2 items-center">
               <Input
                 type="number"
                 min="0"
-                value={ourGoals}
-                onChange={(e) => setOurGoals(parseInt(e.target.value) || 0)}
+                value={homeGoals}
+                onChange={(e) => setHomeGoals(parseInt(e.target.value) || 0)}
                 className="text-center"
               />
               <span className="text-center font-bold">X</span>
               <Input
                 type="number"
                 min="0"
-                value={opponentGoals}
-                onChange={(e) => setOpponentGoals(parseInt(e.target.value) || 0)}
+                value={awayGoals}
+                onChange={(e) => setAwayGoals(parseInt(e.target.value) || 0)}
                 className="text-center"
               />
             </div>
             
             <div className="text-center text-sm text-muted-foreground">
-              {opponent || "Adversário"}
+              {awayTeam || "Time Visitante"}
             </div>
           </div>
 

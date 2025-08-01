@@ -48,8 +48,9 @@ export const StatsTable = ({ playerStats, teams, players, games }: StatsTablePro
       const isGoalkeeperInGame = game.events.some(event => event.playerId === gk.id);
       if (!isGoalkeeperInGame) return total;
       
-      // Assumindo que o goleiro sofreu os gols do adversário
-      return total + game.opponentGoals;
+      // Para cada jogo, assumir que o goleiro sofreu os gols dos gols totais menos os do seu time
+      const goalsInGame = game.events.filter(e => e.type === 'goal' && e.playerId === gk.id).length;
+      return total + Math.max(0, (game.homeGoals + game.awayGoals) - goalsInGame);
     }, 0);
 
     return {
