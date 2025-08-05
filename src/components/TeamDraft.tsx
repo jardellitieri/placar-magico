@@ -3,22 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Player } from "@/types/football";
+import { DraftedTeam } from "@/hooks/useFootballData";
 import { Shuffle, Users, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
-interface DraftedTeam {
-  name: string;
-  players: Player[];
-  goalkeepers: Player[];
-  defenders: Player[];
-  midfielders: Player[];
-  forwards: Player[];
-  level1Count: number;
-  level2Count: number;
-}
-
 interface TeamDraftProps {
   players: Player[];
+  draftedTeams: DraftedTeam[];
+  onSaveDraftedTeams: (teams: DraftedTeam[]) => void;
+  onClearDraftedTeams: () => void;
 }
 
 const POSITIONS_MAP = {
@@ -34,8 +27,7 @@ const POSITIONS_MAP = {
   "Centroavante": "forward"
 };
 
-export const TeamDraft = ({ players }: TeamDraftProps) => {
-  const [draftedTeams, setDraftedTeams] = useState<DraftedTeam[]>([]);
+export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDraftedTeams }: TeamDraftProps) => {
 
   const getPlayersByPosition = (position: string) => {
     return players.filter(player => 
@@ -143,12 +135,12 @@ export const TeamDraft = ({ players }: TeamDraftProps) => {
       });
     }
 
-    setDraftedTeams(teams);
+    onSaveDraftedTeams(teams);
     toast.success(`${maxTeams} times sorteados com sucesso!`);
   };
 
   const clearTeams = () => {
-    setDraftedTeams([]);
+    onClearDraftedTeams();
     toast.success("Times limpos!");
   };
 

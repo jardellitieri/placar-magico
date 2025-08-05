@@ -5,12 +5,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Player, GameEvent, Team } from "@/types/football";
+import { Player, GameEvent } from "@/types/football";
+import { DraftedTeam } from "@/hooks/useFootballData";
 import { Calendar, Plus, Target, Users, Trash2 } from "lucide-react";
 
 interface GameFormProps {
   players: Player[];
-  teams: Team[];
+  draftedTeams: DraftedTeam[];
   onAddGame: (game: {
     date: string;
     homeTeam: string;
@@ -21,7 +22,7 @@ interface GameFormProps {
   }) => void;
 }
 
-export const GameForm = ({ players, teams, onAddGame }: GameFormProps) => {
+export const GameForm = ({ players, draftedTeams, onAddGame }: GameFormProps) => {
   const [date, setDate] = useState("");
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
@@ -97,13 +98,13 @@ export const GameForm = ({ players, teams, onAddGame }: GameFormProps) => {
               <SelectTrigger>
                 <SelectValue placeholder="Time da Casa" />
               </SelectTrigger>
-              <SelectContent>
-                {teams.map((team) => (
-                  <SelectItem key={team.id} value={team.name}>
-                    {team.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
+                    <SelectContent>
+                      {draftedTeams.map((team) => (
+                        <SelectItem key={team.name} value={team.name}>
+                          {team.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
             </Select>
 
             <Select value={awayTeam} onValueChange={setAwayTeam}>
@@ -111,8 +112,8 @@ export const GameForm = ({ players, teams, onAddGame }: GameFormProps) => {
                 <SelectValue placeholder="Time Visitante" />
               </SelectTrigger>
               <SelectContent>
-                {teams.map((team) => (
-                  <SelectItem key={team.id} value={team.name} disabled={team.name === homeTeam}>
+                {draftedTeams.map((team) => (
+                  <SelectItem key={team.name} value={team.name} disabled={team.name === homeTeam}>
                     {team.name}
                   </SelectItem>
                 ))}

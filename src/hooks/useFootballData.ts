@@ -1,22 +1,33 @@
 import { useState, useEffect } from 'react';
-import { Player, Game, PlayerStats, Team } from '@/types/football';
+import { Player, Game, PlayerStats } from '@/types/football';
 
 const STORAGE_KEYS = {
   PLAYERS: 'football-players',
   GAMES: 'football-games',
-  TEAMS: 'football-teams'
+  DRAFTED_TEAMS: 'football-drafted-teams'
 };
+
+export interface DraftedTeam {
+  name: string;
+  players: Player[];
+  goalkeepers: Player[];
+  defenders: Player[];
+  midfielders: Player[];
+  forwards: Player[];
+  level1Count: number;
+  level2Count: number;
+}
 
 export const useFootballData = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [games, setGames] = useState<Game[]>([]);
-  const [teams, setTeams] = useState<Team[]>([]);
+  const [draftedTeams, setDraftedTeams] = useState<DraftedTeam[]>([]);
 
   // Load data from localStorage on mount
   useEffect(() => {
     const savedPlayers = localStorage.getItem(STORAGE_KEYS.PLAYERS);
     const savedGames = localStorage.getItem(STORAGE_KEYS.GAMES);
-    const savedTeams = localStorage.getItem(STORAGE_KEYS.TEAMS);
+    const savedDraftedTeams = localStorage.getItem(STORAGE_KEYS.DRAFTED_TEAMS);
     
     if (savedPlayers) {
       setPlayers(JSON.parse(savedPlayers));
@@ -26,8 +37,8 @@ export const useFootballData = () => {
       setGames(JSON.parse(savedGames));
     }
     
-    if (savedTeams) {
-      setTeams(JSON.parse(savedTeams));
+    if (savedDraftedTeams) {
+      setDraftedTeams(JSON.parse(savedDraftedTeams));
     }
   }, []);
 
@@ -41,8 +52,8 @@ export const useFootballData = () => {
   }, [games]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.TEAMS, JSON.stringify(teams));
-  }, [teams]);
+    localStorage.setItem(STORAGE_KEYS.DRAFTED_TEAMS, JSON.stringify(draftedTeams));
+  }, [draftedTeams]);
 
   const addPlayer = (player: Omit<Player, 'id' | 'goals' | 'assists' | 'gamesPlayed'>) => {
     const newPlayer: Player = {
@@ -53,25 +64,10 @@ export const useFootballData = () => {
       gamesPlayed: 0
     };
     setPlayers(prev => [...prev, newPlayer]);
-    
-    // Add player to team if teamId is provided
-    if (player.teamId) {
-      setTeams(prev => prev.map(team => 
-        team.id === player.teamId 
-          ? { ...team, players: [...team.players, newPlayer.id] }
-          : team
-      ));
-    }
   };
 
   const removePlayer = (playerId: string) => {
     setPlayers(prev => prev.filter(p => p.id !== playerId));
-    
-    // Remove player from team
-    setTeams(prev => prev.map(team => ({
-      ...team,
-      players: team.players.filter(id => id !== playerId)
-    })));
   };
 
   const addGame = (game: Omit<Game, 'id'>) => {
@@ -131,72 +127,23 @@ export const useFootballData = () => {
       .sort((a, b) => b.totalPoints - a.totalPoints);
   };
 
-  const addTeam = (name: string) => {
-    const newTeam: Team = {
-      id: Date.now().toString(),
-      name,
-      players: []
-    };
-    setTeams(prev => [...prev, newTeam]);
+  const saveDraftedTeams = (teams: DraftedTeam[]) => {
+    setDraftedTeams(teams);
   };
 
-  const removeTeam = (teamId: string) => {
-    // Remove team association from players
-    setPlayers(prev => prev.map(player => 
-      player.teamId === teamId 
-        ? { ...player, teamId: undefined }
-        : player
-    ));
-    
-    setTeams(prev => prev.filter(t => t.id !== teamId));
-  };
-
-  const addPlayerToTeam = (playerId: string, teamId: string) => {
-    // Remove player from current team first
-    setTeams(prev => prev.map(team => ({
-      ...team,
-      players: team.players.filter(id => id !== playerId)
-    })));
-    
-    // Add to new team
-    setTeams(prev => prev.map(team => 
-      team.id === teamId 
-        ? { ...team, players: [...team.players, playerId] }
-        : team
-    ));
-    
-    // Update player's teamId
-    setPlayers(prev => prev.map(player => 
-      player.id === playerId 
-        ? { ...player, teamId }
-        : player
-    ));
-  };
-
-  const removePlayerFromTeam = (playerId: string) => {
-    setTeams(prev => prev.map(team => ({
-      ...team,
-      players: team.players.filter(id => id !== playerId)
-    })));
-    
-    setPlayers(prev => prev.map(player => 
-      player.id === playerId 
-        ? { ...player, teamId: undefined }
-        : player
-    ));
+  const clearDraftedTeams = () => {
+    setDraftedTeams([]);
   };
 
   return {
     players,
     games,
-    teams,
+    draftedTeams,
     addPlayer,
     removePlayer,
     addGame,
     getPlayerStats,
-    addTeam,
-    removeTeam,
-    addPlayerToTeam,
-    removePlayerFromTeam
+    saveDraftedTeams,
+    clearDraftedTeams
   };
 };

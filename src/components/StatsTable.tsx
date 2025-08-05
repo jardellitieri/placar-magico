@@ -8,21 +8,25 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { PlayerStats, Team, Game } from "@/types/football";
+import { PlayerStats, Game } from "@/types/football";
+import { DraftedTeam } from "@/hooks/useFootballData";
 import { Trophy, Target, Users, Shield } from "lucide-react";
 
 interface StatsTableProps {
   playerStats: PlayerStats[];
-  teams: Team[];
+  draftedTeams: DraftedTeam[];
   players: any[];
   games: Game[];
 }
 
-export const StatsTable = ({ playerStats, teams, players, games }: StatsTableProps) => {
+export const StatsTable = ({ playerStats, draftedTeams, players, games }: StatsTableProps) => {
   const getPlayerTeam = (playerId: string) => {
-    const player = players.find(p => p.id === playerId);
-    if (!player?.teamId) return null;
-    return teams.find(t => t.id === player.teamId);
+    for (const team of draftedTeams) {
+      if (team.players.some(p => p.id === playerId)) {
+        return team;
+      }
+    }
+    return null;
   };
 
   // Ranking de gols

@@ -8,7 +8,7 @@ import { PlayerCard } from "@/components/PlayerCard";
 import { GameForm } from "@/components/GameForm";
 import { StatsTable } from "@/components/StatsTable";
 import { GamesList } from "@/components/GamesList";
-import { TeamManager } from "@/components/TeamManager";
+
 import { TeamDraft } from "@/components/TeamDraft";
 import { Users, Calendar, Trophy, Activity, Shield, Download, Shuffle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -18,19 +18,17 @@ const Index = () => {
   const { 
     players, 
     games, 
-    teams, 
+    draftedTeams,
     addPlayer, 
     removePlayer, 
     addGame, 
     getPlayerStats,
-    addTeam,
-    removeTeam,
-    addPlayerToTeam,
-    removePlayerFromTeam
+    saveDraftedTeams,
+    clearDraftedTeams
   } = useFootballData();
   const { toast } = useToast();
 
-  const handleAddPlayer = (playerData: { name: string; position: string; level: 1 | 2; teamId?: string }) => {
+  const handleAddPlayer = (playerData: { name: string; position: string; level: 1 | 2 }) => {
     addPlayer(playerData);
     toast({
       title: "Jogador adicionado!",
@@ -57,7 +55,7 @@ const Index = () => {
   };
 
   const handleExportToExcel = () => {
-    exportStatsToExcel(playerStats, games, players, teams);
+    exportStatsToExcel(playerStats, games, players, draftedTeams);
     toast({
       title: "Excel exportado!",
       description: "As estatísticas foram exportadas com sucesso.",
@@ -78,12 +76,12 @@ const Index = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="p-4 text-center">
               <Shield className="h-8 w-8 mx-auto mb-2 text-primary" />
-              <p className="text-2xl font-bold">{teams.length}</p>
-              <p className="text-sm text-muted-foreground">Times</p>
+              <p className="text-2xl font-bold">{draftedTeams.length}</p>
+              <p className="text-sm text-muted-foreground">Times Sorteados</p>
             </CardContent>
           </Card>
           <Card>
@@ -112,24 +110,11 @@ const Index = () => {
              </CardContent>
            </Card>
           
-          <Card>
-            <CardContent className="p-4 text-center">
-              <Activity className="h-8 w-8 mx-auto mb-2 text-assist" />
-              <p className="text-2xl font-bold">
-                {players.reduce((total, player) => total + player.assists, 0)}
-              </p>
-              <p className="text-sm text-muted-foreground">Assistências</p>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Main Content */}
         <Tabs defaultValue="players" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="teams" className="flex items-center gap-2">
-              <Shield className="h-4 w-4" />
-              Times
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="players" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Jogadores
@@ -152,21 +137,11 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="teams" className="space-y-6">
-            <TeamManager
-              teams={teams}
-              players={players}
-              onAddTeam={addTeam}
-              onRemoveTeam={removeTeam}
-              onAddPlayerToTeam={addPlayerToTeam}
-              onRemovePlayerFromTeam={removePlayerFromTeam}
-            />
-          </TabsContent>
 
           <TabsContent value="players" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-1">
-                <AddPlayerForm teams={teams} onAddPlayer={handleAddPlayer} />
+                <AddPlayerForm onAddPlayer={handleAddPlayer} />
               </div>
               
               <div className="lg:col-span-2">
@@ -207,23 +182,28 @@ const Index = () => {
                 </CardContent>
               </Card>
             ) : (
-              <TeamDraft players={players} />
+              <TeamDraft 
+                players={players} 
+                draftedTeams={draftedTeams}
+                onSaveDraftedTeams={saveDraftedTeams}
+                onClearDraftedTeams={clearDraftedTeams}
+              />
             )}
           </TabsContent>
 
           <TabsContent value="games" className="space-y-6">
-            {players.length === 0 ? (
+            {draftedTeams.length === 0 ? (
               <Card>
                 <CardContent className="p-8 text-center">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">Cadastre jogadores primeiro</h3>
+                  <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">Sorteie times primeiro</h3>
                   <p className="text-muted-foreground">
-                    Você precisa ter jogadores cadastrados para registrar jogos
+                    Você precisa sortear times antes de registrar jogos
                   </p>
                 </CardContent>
               </Card>
             ) : (
-              <GameForm players={players} teams={teams} onAddGame={handleAddGame} />
+              <GameForm players={players} draftedTeams={draftedTeams} onAddGame={handleAddGame} />
             )}
           </TabsContent>
 
@@ -234,7 +214,7 @@ const Index = () => {
                 Exportar para Excel
               </Button>
             </div>
-            <StatsTable playerStats={playerStats} teams={teams} players={players} games={games} />
+            <StatsTable playerStats={playerStats} draftedTeams={draftedTeams} players={players} games={games} />
           </TabsContent>
 
           <TabsContent value="history" className="space-y-6">

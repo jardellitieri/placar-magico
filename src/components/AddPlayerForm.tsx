@@ -4,12 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserPlus } from "lucide-react";
-import { Team } from "@/types/football";
+
 import { toast } from "sonner";
 
 interface AddPlayerFormProps {
-  teams: Team[];
-  onAddPlayer: (player: { name: string; position: string; level: 1 | 2; teamId?: string }) => void;
+  onAddPlayer: (player: { name: string; position: string; level: 1 | 2 }) => void;
 }
 
 const positions = [
@@ -25,11 +24,10 @@ const positions = [
   "Centroavante"
 ];
 
-export const AddPlayerForm = ({ teams, onAddPlayer }: AddPlayerFormProps) => {
+export const AddPlayerForm = ({ onAddPlayer }: AddPlayerFormProps) => {
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
   const [level, setLevel] = useState<1 | 2>(1);
-  const [teamId, setTeamId] = useState<string>("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,13 +35,11 @@ export const AddPlayerForm = ({ teams, onAddPlayer }: AddPlayerFormProps) => {
       onAddPlayer({ 
         name: name.trim(), 
         position,
-        level,
-        teamId: teamId || undefined
+        level
       });
       setName("");
       setPosition("");
       setLevel(1);
-      setTeamId("");
       toast.success("Jogador adicionado com sucesso!");
     }
   };
@@ -95,20 +91,6 @@ export const AddPlayerForm = ({ teams, onAddPlayer }: AddPlayerFormProps) => {
             </Select>
           </div>
 
-          <div>
-            <Select value={teamId} onValueChange={setTeamId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Time (opcional)" />
-              </SelectTrigger>
-              <SelectContent>
-                {teams.map((team) => (
-                  <SelectItem key={team.id} value={team.id}>
-                    {team.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
           
           <Button type="submit" className="w-full">
             <UserPlus className="w-4 h-4 mr-2" />

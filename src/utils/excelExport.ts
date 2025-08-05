@@ -1,24 +1,32 @@
 import * as XLSX from 'xlsx';
-import { PlayerStats, Game, Player, Team } from '@/types/football';
+import { PlayerStats, Game, Player } from '@/types/football';
+import { DraftedTeam } from '@/hooks/useFootballData';
 
 export const exportStatsToExcel = (
   playerStats: PlayerStats[],
   games: Game[],
   players: Player[],
-  teams: Team[]
+  draftedTeams: DraftedTeam[]
 ) => {
+  // Função para obter o time do jogador
+  const getPlayerTeam = (playerId: string) => {
+    for (const team of draftedTeams) {
+      if (team.players.some(p => p.id === playerId)) {
+        return team.name;
+      }
+    }
+    return "Sem time";
+  };
+
   // Criar workbook
   const wb = XLSX.utils.book_new();
 
   // Aba 1: Estatísticas Gerais dos Jogadores
   const generalStats = playerStats.map((stat, index) => {
-    const player = players.find(p => p.id === stat.playerId);
-    const team = player?.teamId ? teams.find(t => t.id === player.teamId) : null;
-    
     return {
       'Posição': index + 1,
       'Jogador': stat.name,
-      'Time': team?.name || 'Sem time',
+      'Time': getPlayerTeam(stat.playerId),
       'Jogos': stat.gamesPlayed,
       'Gols': stat.goals,
       'Assistências': stat.assists,
@@ -97,12 +105,11 @@ export const exportStatsToExcel = (
   XLSX.utils.book_append_sheet(wb, ws5, "Histórico de Jogos");
 
   // Aba 6: Times e Jogadores
-  const teamsData = teams.map(team => {
-    const teamPlayers = players.filter(p => p.teamId === team.id);
+  const teamsData = draftedTeams.map(team => {
     return {
       'Time': team.name,
-      'Número de Jogadores': teamPlayers.length,
-      'Jogadores': teamPlayers.map(p => p.name).join(', ')
+      'Número de Jogadores': team.players.length,
+      'Jogadores': team.players.map(p => p.name).join(', ')
     };
   });
 
