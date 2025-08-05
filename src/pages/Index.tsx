@@ -9,7 +9,8 @@ import { GameForm } from "@/components/GameForm";
 import { StatsTable } from "@/components/StatsTable";
 import { GamesList } from "@/components/GamesList";
 import { TeamManager } from "@/components/TeamManager";
-import { Users, Calendar, Trophy, Activity, Shield, Download } from "lucide-react";
+import { TeamDraft } from "@/components/TeamDraft";
+import { Users, Calendar, Trophy, Activity, Shield, Download, Shuffle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { exportStatsToExcel } from "@/utils/excelExport";
 
@@ -29,7 +30,7 @@ const Index = () => {
   } = useFootballData();
   const { toast } = useToast();
 
-  const handleAddPlayer = (playerData: { name: string; position: string; teamId?: string }) => {
+  const handleAddPlayer = (playerData: { name: string; position: string; level: 1 | 2; teamId?: string }) => {
     addPlayer(playerData);
     toast({
       title: "Jogador adicionado!",
@@ -124,7 +125,7 @@ const Index = () => {
 
         {/* Main Content */}
         <Tabs defaultValue="players" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="teams" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Times
@@ -132,6 +133,10 @@ const Index = () => {
             <TabsTrigger value="players" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Jogadores
+            </TabsTrigger>
+            <TabsTrigger value="draft" className="flex items-center gap-2">
+              <Shuffle className="h-4 w-4" />
+              Sorteio
             </TabsTrigger>
             <TabsTrigger value="games" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -188,6 +193,22 @@ const Index = () => {
                 )}
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="draft" className="space-y-6">
+            {players.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">Cadastre jogadores primeiro</h3>
+                  <p className="text-muted-foreground">
+                    Você precisa ter jogadores cadastrados para sortear times
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <TeamDraft players={players} />
+            )}
           </TabsContent>
 
           <TabsContent value="games" className="space-y-6">

@@ -16,9 +16,14 @@ export const PlayerCard = ({ player, onRemove }: PlayerCardProps) => {
         <div className="flex justify-between items-start">
           <div>
             <CardTitle className="text-lg">{player.name}</CardTitle>
-            <Badge variant="secondary" className="mt-1">
-              {player.position}
-            </Badge>
+            <div className="flex gap-2 mt-1">
+              <Badge variant="secondary">
+                {player.position}
+              </Badge>
+              <Badge variant={player.level === 1 ? "outline" : "default"}>
+                Nível {player.level}
+              </Badge>
+            </div>
           </div>
           <Button
             variant="ghost"

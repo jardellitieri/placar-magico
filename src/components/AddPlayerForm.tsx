@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 interface AddPlayerFormProps {
   teams: Team[];
-  onAddPlayer: (player: { name: string; position: string; teamId?: string }) => void;
+  onAddPlayer: (player: { name: string; position: string; level: 1 | 2; teamId?: string }) => void;
 }
 
 const positions = [
@@ -28,6 +28,7 @@ const positions = [
 export const AddPlayerForm = ({ teams, onAddPlayer }: AddPlayerFormProps) => {
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
+  const [level, setLevel] = useState<1 | 2>(1);
   const [teamId, setTeamId] = useState<string>("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -36,10 +37,12 @@ export const AddPlayerForm = ({ teams, onAddPlayer }: AddPlayerFormProps) => {
       onAddPlayer({ 
         name: name.trim(), 
         position,
+        level,
         teamId: teamId || undefined
       });
       setName("");
       setPosition("");
+      setLevel(1);
       setTeamId("");
       toast.success("Jogador adicionado com sucesso!");
     }
@@ -76,6 +79,18 @@ export const AddPlayerForm = ({ teams, onAddPlayer }: AddPlayerFormProps) => {
                     {pos}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Select value={level.toString()} onValueChange={(value) => setLevel(Number(value) as 1 | 2)} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o nível" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Nível 1</SelectItem>
+                <SelectItem value="2">Nível 2</SelectItem>
               </SelectContent>
             </Select>
           </div>

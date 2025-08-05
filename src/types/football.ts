@@ -8,6 +8,7 @@ export interface Player {
   id: string;
   name: string;
   position: string;
+  level: 1 | 2;
   teamId?: string;
   goals: number;
   assists: number;
