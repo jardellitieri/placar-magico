@@ -15,43 +15,68 @@ import { useToast } from "@/hooks/use-toast";
 import { exportStatsToExcel } from "@/utils/excelExport";
 
 const Index = () => {
-  const { 
-    players, 
-    games, 
+  const {
+    players,
+    games,
     draftedTeams,
-    addPlayer, 
-    removePlayer, 
-    addGame, 
+    loading,
+    addPlayer,
+    removePlayer,
+    addGame,
     getPlayerStats,
     saveDraftedTeams,
     clearDraftedTeams
   } = useFootballData();
   const { toast } = useToast();
 
-  const handleAddPlayer = (playerData: { name: string; position: string; level: 1 | 2 }) => {
-    addPlayer(playerData);
-    toast({
-      title: "Jogador adicionado!",
-      description: `${playerData.name} foi adicionado ao elenco.`,
-    });
+  const handleAddPlayer = async (playerData: { name: string; position: string; level: 1 | 2 }) => {
+    try {
+      await addPlayer(playerData);
+      toast({
+        title: "Jogador adicionado!",
+        description: `${playerData.name} foi adicionado ao elenco.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao adicionar jogador",
+        description: "Ocorreu um erro ao adicionar o jogador. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleRemovePlayer = (playerId: string) => {
+  const handleRemovePlayer = async (playerId: string) => {
     const player = players.find(p => p.id === playerId);
-    removePlayer(playerId);
-    toast({
-      title: "Jogador removido",
-      description: `${player?.name} foi removido do elenco.`,
-      variant: "destructive",
-    });
+    try {
+      await removePlayer(playerId);
+      toast({
+        title: "Jogador removido",
+        description: `${player?.name} foi removido do elenco.`,
+        variant: "destructive",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao remover jogador",
+        description: "Ocorreu um erro ao remover o jogador. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleAddGame = (gameData: any) => {
-    addGame(gameData);
-    toast({
-      title: "Jogo registrado!",
-      description: `Partida ${gameData.homeTeam} vs ${gameData.awayTeam} foi registrada.`,
-    });
+  const handleAddGame = async (gameData: any) => {
+    try {
+      await addGame(gameData);
+      toast({
+        title: "Jogo registrado!",
+        description: `Partida ${gameData.homeTeam} vs ${gameData.awayTeam} foi registrada.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao registrar jogo",
+        description: "Ocorreu um erro ao registrar o jogo. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleExportToExcel = () => {
@@ -63,6 +88,17 @@ const Index = () => {
   };
 
   const playerStats = getPlayerStats();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-field-light to-background p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg text-field">Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-field-light to-background">

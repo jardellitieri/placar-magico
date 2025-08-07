@@ -10,8 +10,8 @@ import { toast } from "sonner";
 interface TeamDraftProps {
   players: Player[];
   draftedTeams: DraftedTeam[];
-  onSaveDraftedTeams: (teams: DraftedTeam[]) => void;
-  onClearDraftedTeams: () => void;
+  onSaveDraftedTeams: (teams: DraftedTeam[]) => Promise<void>;
+  onClearDraftedTeams: () => Promise<void>;
 }
 
 const POSITIONS_MAP = {
@@ -135,13 +135,19 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
       });
     }
 
-    onSaveDraftedTeams(teams);
-    toast.success(`${maxTeams} times sorteados com sucesso!`);
+    onSaveDraftedTeams(teams).then(() => {
+      toast.success(`${maxTeams} times sorteados com sucesso!`);
+    }).catch(() => {
+      toast.error("Erro ao salvar times sorteados.");
+    });
   };
 
   const clearTeams = () => {
-    onClearDraftedTeams();
-    toast.success("Times limpos!");
+    onClearDraftedTeams().then(() => {
+      toast.success("Times limpos!");
+    }).catch(() => {
+      toast.error("Erro ao limpar times.");
+    });
   };
 
   const getPlayerCountsByPosition = () => {
