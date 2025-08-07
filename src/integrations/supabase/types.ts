@@ -14,7 +14,159 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      drafted_teams: {
+        Row: {
+          created_at: string
+          defenders: Json
+          forwards: Json
+          goalkeepers: Json
+          id: string
+          level1_count: number
+          level2_count: number
+          midfielders: Json
+          name: string
+          players: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          defenders?: Json
+          forwards?: Json
+          goalkeepers?: Json
+          id?: string
+          level1_count?: number
+          level2_count?: number
+          midfielders?: Json
+          name: string
+          players?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          defenders?: Json
+          forwards?: Json
+          goalkeepers?: Json
+          id?: string
+          level1_count?: number
+          level2_count?: number
+          midfielders?: Json
+          name?: string
+          players?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      game_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          game_id: string
+          id: string
+          minute: number
+          player_id: string
+          player_name: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          game_id: string
+          id?: string
+          minute: number
+          player_id: string
+          player_name: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          game_id?: string
+          id?: string
+          minute?: number
+          player_id?: string
+          player_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_events_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_events_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      games: {
+        Row: {
+          away_goals: number
+          away_team: string
+          created_at: string
+          date: string
+          home_goals: number
+          home_team: string
+          id: string
+        }
+        Insert: {
+          away_goals?: number
+          away_team: string
+          created_at?: string
+          date: string
+          home_goals?: number
+          home_team: string
+          id?: string
+        }
+        Update: {
+          away_goals?: number
+          away_team?: string
+          created_at?: string
+          date?: string
+          home_goals?: number
+          home_team?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      players: {
+        Row: {
+          assists: number
+          created_at: string
+          games_played: number
+          goals: number
+          id: string
+          level: number
+          name: string
+          position: string
+          updated_at: string
+        }
+        Insert: {
+          assists?: number
+          created_at?: string
+          games_played?: number
+          goals?: number
+          id?: string
+          level: number
+          name: string
+          position: string
+          updated_at?: string
+        }
+        Update: {
+          assists?: number
+          created_at?: string
+          games_played?: number
+          goals?: number
+          id?: string
+          level?: number
+          name?: string
+          position?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
