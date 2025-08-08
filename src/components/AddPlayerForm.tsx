@@ -3,13 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 import { UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 interface AddPlayerFormProps {
-  onAddPlayer: (player: { name: string; position: string; level: 1 | 2; availableForDraft: boolean }) => void;
+  onAddPlayer: (player: { name: string; position: string; level: 1 | 2 }) => void;
 }
 
 const positions = [
@@ -29,7 +27,6 @@ export const AddPlayerForm = ({ onAddPlayer }: AddPlayerFormProps) => {
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
   const [level, setLevel] = useState<1 | 2>(1);
-  const [availableForDraft, setAvailableForDraft] = useState(true);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,13 +34,11 @@ export const AddPlayerForm = ({ onAddPlayer }: AddPlayerFormProps) => {
       onAddPlayer({ 
         name: name.trim(), 
         position,
-        level,
-        availableForDraft
+        level
       });
       setName("");
       setPosition("");
       setLevel(1);
-      setAvailableForDraft(true);
       toast.success("Jogador adicionado com sucesso!");
     }
   };
@@ -93,17 +88,6 @@ export const AddPlayerForm = ({ onAddPlayer }: AddPlayerFormProps) => {
                 <SelectItem value="2">Nível 2</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="available-for-draft"
-              checked={availableForDraft}
-              onCheckedChange={setAvailableForDraft}
-            />
-            <Label htmlFor="available-for-draft">
-              Disponível para sorteio
-            </Label>
           </div>
           
           <Button type="submit" className="w-full">

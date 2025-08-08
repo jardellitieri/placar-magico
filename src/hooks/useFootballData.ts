@@ -106,7 +106,7 @@ export const useFootballData = () => {
     }
   };
 
-  const addPlayer = async (player: Omit<Player, 'id' | 'goals' | 'assists' | 'gamesPlayed'>) => {
+  const addPlayer = async (player: Omit<Player, 'id' | 'goals' | 'assists' | 'gamesPlayed' | 'availableForDraft'>) => {
     try {
       const { data, error } = await supabase
         .from('players')
@@ -114,7 +114,7 @@ export const useFootballData = () => {
           name: player.name,
           position: player.position,
           level: player.level,
-          available_for_draft: player.availableForDraft
+          available_for_draft: true // Sempre disponível por padrão
         })
         .select()
         .single();

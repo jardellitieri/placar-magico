@@ -30,7 +30,7 @@ const Index = () => {
   } = useFootballData();
   const { toast } = useToast();
 
-  const handleAddPlayer = async (playerData: { name: string; position: string; level: 1 | 2; availableForDraft: boolean }) => {
+  const handleAddPlayer = async (playerData: { name: string; position: string; level: 1 | 2 }) => {
     try {
       await addPlayer(playerData);
       toast({
