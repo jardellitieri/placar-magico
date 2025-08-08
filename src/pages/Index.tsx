@@ -181,8 +181,14 @@ const Index = () => {
                 <AddPlayerForm onAddPlayer={handleAddPlayer} />
               </div>
               
-              <div className="lg:col-span-2">
-                {players.length === 0 ? (
+               <div className="lg:col-span-2">
+                {loading ? (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <p className="text-muted-foreground">Carregando jogadores...</p>
+                    </CardContent>
+                  </Card>
+                ) : players?.length === 0 ? (
                   <Card>
                     <CardContent className="p-8 text-center">
                       <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -194,7 +200,7 @@ const Index = () => {
                   </Card>
                 ) : (
                   <PlayerCard 
-                    players={players} 
+                    players={players || []} 
                     onRemovePlayer={handleRemovePlayer}
                     onUpdatePlayer={updatePlayer}
                   />

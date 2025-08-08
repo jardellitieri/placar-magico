@@ -12,9 +12,12 @@ interface PlayerCardProps {
 }
 
 export const PlayerCard = ({ players, onRemovePlayer, onUpdatePlayer }: PlayerCardProps) => {
+  // Garantir que players seja sempre um array
+  const safePlayersList = players || [];
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {players.map((player) => (
+      {safePlayersList.map((player) => (
         <Card key={player.id} className="hover:shadow-lg transition-shadow">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
