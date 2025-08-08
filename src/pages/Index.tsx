@@ -22,6 +22,7 @@ const Index = () => {
     loading,
     addPlayer,
     removePlayer,
+    updatePlayer,
     addGame,
     getPlayerStats,
     saveDraftedTeams,
@@ -29,7 +30,7 @@ const Index = () => {
   } = useFootballData();
   const { toast } = useToast();
 
-  const handleAddPlayer = async (playerData: { name: string; position: string; level: 1 | 2 }) => {
+  const handleAddPlayer = async (playerData: { name: string; position: string; level: 1 | 2; availableForDraft: boolean }) => {
     try {
       await addPlayer(playerData);
       toast({
@@ -192,15 +193,11 @@ const Index = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {players.map((player) => (
-                      <PlayerCard
-                        key={player.id}
-                        player={player}
-                        onRemove={handleRemovePlayer}
-                      />
-                    ))}
-                  </div>
+                  <PlayerCard 
+                    players={players} 
+                    onRemovePlayer={handleRemovePlayer}
+                    onUpdatePlayer={updatePlayer}
+                  />
                 )}
               </div>
             </div>

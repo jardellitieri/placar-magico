@@ -31,6 +31,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
 
   const getPlayersByPosition = (position: string) => {
     return players.filter(player => 
+      player.availableForDraft &&
       POSITIONS_MAP[player.position as keyof typeof POSITIONS_MAP] === position
     );
   };

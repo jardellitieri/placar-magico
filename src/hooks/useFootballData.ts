@@ -62,7 +62,8 @@ export const useFootballData = () => {
           level: player.level as 1 | 2,
           goals: player.goals,
           assists: player.assists,
-          gamesPlayed: player.games_played
+          gamesPlayed: player.games_played,
+          availableForDraft: player.available_for_draft ?? true
         }));
         setPlayers(formattedPlayers);
       }
@@ -112,7 +113,8 @@ export const useFootballData = () => {
         .insert({
           name: player.name,
           position: player.position,
-          level: player.level
+          level: player.level,
+          available_for_draft: player.availableForDraft
         })
         .select()
         .single();
@@ -126,7 +128,8 @@ export const useFootballData = () => {
         level: data.level as 1 | 2,
         goals: data.goals,
         assists: data.assists,
-        gamesPlayed: data.games_played
+        gamesPlayed: data.games_played,
+        availableForDraft: data.available_for_draft ?? true
       };
 
       setPlayers(prev => [...prev, newPlayer]);
@@ -299,6 +302,31 @@ export const useFootballData = () => {
     }
   };
 
+  const updatePlayer = async (playerId: string, updates: Partial<Player>) => {
+    try {
+      const { error } = await supabase
+        .from('players')
+        .update({
+          name: updates.name,
+          position: updates.position,
+          level: updates.level,
+          available_for_draft: updates.availableForDraft
+        })
+        .eq('id', playerId);
+
+      if (error) throw error;
+
+      setPlayers(prev => prev.map(p => 
+        p.id === playerId 
+          ? { ...p, ...updates }
+          : p
+      ));
+    } catch (error) {
+      console.error('Error updating player:', error);
+      throw error;
+    }
+  };
+
   return {
     players,
     games,
@@ -306,6 +334,7 @@ export const useFootballData = () => {
     loading,
     addPlayer,
     removePlayer,
+    updatePlayer,
     addGame,
     getPlayerStats,
     saveDraftedTeams,

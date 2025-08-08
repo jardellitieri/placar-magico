@@ -13,6 +13,7 @@ export interface Player {
   goals: number;
   assists: number;
   gamesPlayed: number;
+  availableForDraft: boolean;
 }
 
 export interface GameEvent {

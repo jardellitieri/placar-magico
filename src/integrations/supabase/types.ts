@@ -134,6 +134,7 @@ export type Database = {
       players: {
         Row: {
           assists: number
+          available_for_draft: boolean
           created_at: string
           games_played: number
           goals: number
@@ -145,6 +146,7 @@ export type Database = {
         }
         Insert: {
           assists?: number
+          available_for_draft?: boolean
           created_at?: string
           games_played?: number
           goals?: number
@@ -156,6 +158,7 @@ export type Database = {
         }
         Update: {
           assists?: number
+          available_for_draft?: boolean
           created_at?: string
           games_played?: number
           goals?: number
