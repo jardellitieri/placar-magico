@@ -13,14 +13,9 @@ interface AddPlayerFormProps {
 const positions = [
   "Goleiro",
   "Zagueiro",
-  "Lateral Direito", 
-  "Lateral Esquerdo",
-  "Volante",
   "Meio-campo",
   "Meia-atacante",
-  "Ponta Direita",
-  "Ponta Esquerda",
-  "Centroavante"
+  "Pivô"
 ];
 
 export const AddPlayerForm = ({ onAddPlayer }: AddPlayerFormProps) => {

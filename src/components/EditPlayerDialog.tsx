@@ -17,14 +17,9 @@ interface EditPlayerDialogProps {
 const positions = [
   "Goleiro",
   "Zagueiro",
-  "Lateral Direito", 
-  "Lateral Esquerdo",
-  "Volante",
   "Meio-campo",
   "Meia-atacante",
-  "Ponta Direita",
-  "Ponta Esquerda",
-  "Centroavante"
+  "Pivô"
 ];
 
 export const EditPlayerDialog = ({ player, onUpdatePlayer }: EditPlayerDialogProps) => {
