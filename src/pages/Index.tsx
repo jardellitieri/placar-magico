@@ -3,18 +3,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useFootballData } from "@/hooks/useFootballData";
+import { useAuth } from "@/hooks/useAuth";
 import { AddPlayerForm } from "@/components/AddPlayerForm";
 import { PlayerCard } from "@/components/PlayerCard";
 import { GameForm } from "@/components/GameForm";
 import { StatsTable } from "@/components/StatsTable";
 import { GamesList } from "@/components/GamesList";
-
+import { AuthForm } from "@/components/AuthForm";
 import { TeamDraft } from "@/components/TeamDraft";
-import { Users, Calendar, Trophy, Activity, Shield, Download, Shuffle } from "lucide-react";
+import { Users, Calendar, Trophy, Activity, Shield, Download, Shuffle, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { exportStatsToExcel } from "@/utils/excelExport";
 
 const Index = () => {
+  const { user, loading: authLoading, signOut } = useAuth();
   const {
     players,
     games,
@@ -29,6 +31,22 @@ const Index = () => {
     clearDraftedTeams
   } = useFootballData();
   const { toast } = useToast();
+
+  // Show auth form if not authenticated
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthForm onAuthSuccess={() => window.location.reload()} />;
+  }
 
   const handleAddPlayer = async (playerData: { name: string; position: string; level: 1 | 2 }) => {
     try {
@@ -105,11 +123,17 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-field-light to-background">
       <div className="container mx-auto p-4 max-w-7xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-field mb-2">⚽ Controle - PPFC</h1>
-          <p className="text-lg text-muted-foreground">
-            Gerencie jogadores, registre jogos e acompanhe estatísticas
-          </p>
+        <div className="flex justify-between items-center mb-8">
+          <div className="text-center flex-1">
+            <h1 className="text-4xl font-bold text-field mb-2">⚽ Controle - PPFC</h1>
+            <p className="text-lg text-muted-foreground">
+              Gerencie jogadores, registre jogos e acompanhe estatísticas
+            </p>
+          </div>
+          <Button variant="outline" onClick={signOut} className="flex items-center gap-2">
+            <LogOut className="h-4 w-4" />
+            Sair
+          </Button>
         </div>
 
         {/* Quick Stats */}
