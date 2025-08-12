@@ -110,12 +110,18 @@ export const useFootballData = () => {
 
   const addPlayer = async (player: Omit<Player, 'id' | 'goals' | 'assists' | 'gamesPlayed' | 'availableForDraft'>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User must be authenticated to add players');
+      }
+
       const { data, error } = await supabase
         .from('players')
         .insert({
           name: player.name,
           position: player.position,
           level: player.level,
+          user_id: user.id,
           available_for_draft: true // Sempre disponível por padrão
         })
         .select()
@@ -159,6 +165,11 @@ export const useFootballData = () => {
 
   const addGame = async (game: Omit<Game, 'id'>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User must be authenticated to add games');
+      }
+
       // Insert game
       const { data: gameData, error: gameError } = await supabase
         .from('games')
@@ -167,7 +178,8 @@ export const useFootballData = () => {
           home_team: game.homeTeam,
           away_team: game.awayTeam,
           home_goals: game.homeGoals,
-          away_goals: game.awayGoals
+          away_goals: game.awayGoals,
+          user_id: user.id
         })
         .select()
         .single();
@@ -181,7 +193,8 @@ export const useFootballData = () => {
           player_id: event.playerId,
           player_name: event.playerName,
           event_type: event.type,
-          minute: event.minute
+          minute: event.minute,
+          user_id: user.id
         }));
 
         const { error: eventsError } = await supabase
@@ -258,6 +271,11 @@ export const useFootballData = () => {
 
   const saveDraftedTeams = async (teams: DraftedTeam[]) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User must be authenticated to save drafted teams');
+      }
+
       // Clear existing drafted teams
       await supabase.from('drafted_teams').delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
@@ -265,11 +283,12 @@ export const useFootballData = () => {
       if (teams.length > 0) {
         const teamsData = teams.map(team => ({
           name: team.name,
+          user_id: user.id,
           players: JSON.stringify(team.players),
           goalkeepers: JSON.stringify(team.goalkeepers),
           defenders: JSON.stringify(team.defenders),
           midfielders: JSON.stringify(team.midfielders),
-          forwards: JSON.stringify(team.forwards),
+          forwards: JSON.stringify([...(team.attackingMidfielders || []), ...(team.pivots || [])]),
           level1_count: team.level1Count,
           level2_count: team.level2Count
         }));

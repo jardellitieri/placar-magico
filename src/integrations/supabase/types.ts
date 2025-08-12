@@ -27,6 +27,7 @@ export type Database = {
           name: string
           players: Json
           updated_at: string
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -40,6 +41,7 @@ export type Database = {
           name: string
           players?: Json
           updated_at?: string
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -53,6 +55,7 @@ export type Database = {
           name?: string
           players?: Json
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -65,6 +68,7 @@ export type Database = {
           minute: number
           player_id: string
           player_name: string
+          user_id: string
         }
         Insert: {
           created_at?: string
@@ -74,6 +78,7 @@ export type Database = {
           minute: number
           player_id: string
           player_name: string
+          user_id: string
         }
         Update: {
           created_at?: string
@@ -83,6 +88,7 @@ export type Database = {
           minute?: number
           player_id?: string
           player_name?: string
+          user_id?: string
         }
         Relationships: [
           {
@@ -110,6 +116,7 @@ export type Database = {
           home_goals: number
           home_team: string
           id: string
+          user_id: string
         }
         Insert: {
           away_goals?: number
@@ -119,6 +126,7 @@ export type Database = {
           home_goals?: number
           home_team: string
           id?: string
+          user_id: string
         }
         Update: {
           away_goals?: number
@@ -128,6 +136,7 @@ export type Database = {
           home_goals?: number
           home_team?: string
           id?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -143,6 +152,7 @@ export type Database = {
           name: string
           position: string
           updated_at: string
+          user_id: string
         }
         Insert: {
           assists?: number
@@ -155,6 +165,7 @@ export type Database = {
           name: string
           position: string
           updated_at?: string
+          user_id: string
         }
         Update: {
           assists?: number
@@ -167,6 +178,7 @@ export type Database = {
           name?: string
           position?: string
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
