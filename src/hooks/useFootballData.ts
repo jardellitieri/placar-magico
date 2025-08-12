@@ -9,6 +9,8 @@ export interface DraftedTeam {
   defenders: Player[];
   midfielders: Player[];
   forwards: Player[];
+  attackingMidfielders?: Player[];
+  pivots?: Player[];
   level1Count: number;
   level2Count: number;
 }

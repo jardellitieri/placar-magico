@@ -21,10 +21,19 @@ const POSITIONS_MAP = {
   "Lateral Esquerdo": "defender",
   "Volante": "midfielder",
   "Meio-campo": "midfielder",
-  "Meia-atacante": "midfielder",
-  "Ponta Direita": "forward",
-  "Ponta Esquerda": "forward",
-  "Centroavante": "forward"
+  "Meia-atacante": "attacking_midfielder",
+  "Ponta Direita": "attacking_midfielder",
+  "Ponta Esquerda": "attacking_midfielder",
+  "Centroavante": "pivot"
+};
+
+// Formação: 1 Goleiro, 2 Zagueiros, 1 Meio-campo, 2 Meia-atacantes, 1 Pivô = 7 jogadores
+const TEAM_FORMATION = {
+  goalkeeper: 1,
+  defender: 2,
+  midfielder: 1,
+  attacking_midfielder: 2,
+  pivot: 1
 };
 
 export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDraftedTeams }: TeamDraftProps) => {
@@ -36,21 +45,44 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
     );
   };
 
-  const balanceTeamsByLevel = (playersInPosition: Player[], teamsCount: number, playersPerTeam: number) => {
-    const level1Players = playersInPosition.filter(p => p.level === 1);
-    const level2Players = playersInPosition.filter(p => p.level === 2);
+  const balanceTeamsByLevel = (playersInPosition: Player[], teamsCount: number, playersPerPosition: number) => {
+    const level1Players = shuffleArray(playersInPosition.filter(p => p.level === 1));
+    const level2Players = shuffleArray(playersInPosition.filter(p => p.level === 2));
     
     const teams: Player[][] = Array.from({ length: teamsCount }, () => []);
     
-    // Distribuir jogadores nível 2 primeiro (mais equilibrados)
-    level2Players.forEach((player, index) => {
-      teams[index % teamsCount].push(player);
-    });
+    // Distribuir jogadores por posição, priorizando equilíbrio entre níveis
+    const totalPlayersNeeded = teamsCount * playersPerPosition;
+    const targetLevel1PerTeam = Math.floor(level1Players.length / teamsCount);
+    const targetLevel2PerTeam = Math.floor(level2Players.length / teamsCount);
     
-    // Distribuir jogadores nível 1
-    level1Players.forEach((player, index) => {
-      teams[index % teamsCount].push(player);
-    });
+    // Primeiro, distribuir de forma equilibrada
+    for (let teamIndex = 0; teamIndex < teamsCount; teamIndex++) {
+      // Adicionar jogadores nível 1 (limitado ao que temos)
+      const level1ToAdd = Math.min(targetLevel1PerTeam, playersPerPosition);
+      for (let i = 0; i < level1ToAdd && level1Players.length > 0; i++) {
+        teams[teamIndex].push(level1Players.shift()!);
+      }
+      
+      // Completar com jogadores nível 2
+      const remainingSlots = playersPerPosition - teams[teamIndex].length;
+      for (let i = 0; i < remainingSlots && level2Players.length > 0; i++) {
+        teams[teamIndex].push(level2Players.shift()!);
+      }
+    }
+    
+    // Distribuir jogadores restantes de forma circular
+    let teamIndex = 0;
+    while (level1Players.length > 0 || level2Players.length > 0) {
+      if (teams[teamIndex].length < playersPerPosition) {
+        if (level1Players.length > 0) {
+          teams[teamIndex].push(level1Players.shift()!);
+        } else if (level2Players.length > 0) {
+          teams[teamIndex].push(level2Players.shift()!);
+        }
+      }
+      teamIndex = (teamIndex + 1) % teamsCount;
+    }
     
     return teams;
   };
@@ -68,30 +100,26 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
     const goalkeepers = getPlayersByPosition("goalkeeper");
     const defenders = getPlayersByPosition("defender");
     const midfielders = getPlayersByPosition("midfielder");
-    const forwards = getPlayersByPosition("forward");
+    const attackingMidfielders = getPlayersByPosition("attacking_midfielder");
+    const pivots = getPlayersByPosition("pivot");
 
-    // Verificar se há jogadores suficientes
-    const minPlayersNeeded = {
-      goalkeepers: 1,
-      defenders: 2,
-      midfielders: 2,
-      forwards: 2
-    };
-
-    if (goalkeepers.length < minPlayersNeeded.goalkeepers ||
-        defenders.length < minPlayersNeeded.defenders ||
-        midfielders.length < minPlayersNeeded.midfielders ||
-        forwards.length < minPlayersNeeded.forwards) {
-      toast.error("Jogadores insuficientes! Necessário pelo menos 1 goleiro, 2 zagueiros, 2 meio-campistas e 2 atacantes.");
+    // Verificar se há jogadores suficientes para formar pelo menos 1 time
+    if (goalkeepers.length < TEAM_FORMATION.goalkeeper ||
+        defenders.length < TEAM_FORMATION.defender ||
+        midfielders.length < TEAM_FORMATION.midfielder ||
+        attackingMidfielders.length < TEAM_FORMATION.attacking_midfielder ||
+        pivots.length < TEAM_FORMATION.pivot) {
+      toast.error("Jogadores insuficientes! Necessário pelo menos: 1 goleiro, 2 zagueiros, 1 meio-campo, 2 meia-atacantes e 1 pivô para formar um time.");
       return;
     }
 
-    // Calcular quantos times podem ser formados
+    // Calcular quantos times podem ser formados (7 jogadores por time)
     const maxTeams = Math.min(
-      Math.floor(goalkeepers.length / 1),
-      Math.floor(defenders.length / 2),
-      Math.floor(midfielders.length / 2),
-      Math.floor(forwards.length / 2)
+      Math.floor(goalkeepers.length / TEAM_FORMATION.goalkeeper),
+      Math.floor(defenders.length / TEAM_FORMATION.defender),
+      Math.floor(midfielders.length / TEAM_FORMATION.midfielder),
+      Math.floor(attackingMidfielders.length / TEAM_FORMATION.attacking_midfielder),
+      Math.floor(pivots.length / TEAM_FORMATION.pivot)
     );
 
     if (maxTeams === 0) {
@@ -99,17 +127,12 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
       return;
     }
 
-    // Embaralhar jogadores
-    const shuffledGoalkeepers = shuffleArray(goalkeepers);
-    const shuffledDefenders = shuffleArray(defenders);
-    const shuffledMidfielders = shuffleArray(midfielders);
-    const shuffledForwards = shuffleArray(forwards);
-
-    // Distribuir jogadores equilibradamente por nível
-    const teamGoalkeepers = balanceTeamsByLevel(shuffledGoalkeepers, maxTeams, 1);
-    const teamDefenders = balanceTeamsByLevel(shuffledDefenders, maxTeams, 2);
-    const teamMidfielders = balanceTeamsByLevel(shuffledMidfielders, maxTeams, 2);
-    const teamForwards = balanceTeamsByLevel(shuffledForwards, maxTeams, 2);
+    // Distribuir jogadores equilibradamente por nível e posição
+    const teamGoalkeepers = balanceTeamsByLevel(goalkeepers, maxTeams, TEAM_FORMATION.goalkeeper);
+    const teamDefenders = balanceTeamsByLevel(defenders, maxTeams, TEAM_FORMATION.defender);
+    const teamMidfielders = balanceTeamsByLevel(midfielders, maxTeams, TEAM_FORMATION.midfielder);
+    const teamAttackingMidfielders = balanceTeamsByLevel(attackingMidfielders, maxTeams, TEAM_FORMATION.attacking_midfielder);
+    const teamPivots = balanceTeamsByLevel(pivots, maxTeams, TEAM_FORMATION.pivot);
 
     // Criar times
     const teams: DraftedTeam[] = [];
@@ -118,7 +141,8 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
         ...teamGoalkeepers[i],
         ...teamDefenders[i],
         ...teamMidfielders[i],
-        ...teamForwards[i]
+        ...teamAttackingMidfielders[i],
+        ...teamPivots[i]
       ];
 
       const level1Count = teamPlayers.filter(p => p.level === 1).length;
@@ -130,14 +154,16 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
         goalkeepers: teamGoalkeepers[i],
         defenders: teamDefenders[i],
         midfielders: teamMidfielders[i],
-        forwards: teamForwards[i],
+        forwards: [...teamAttackingMidfielders[i], ...teamPivots[i]], // Salvar tudo em forwards para compatibilidade
+        attackingMidfielders: teamAttackingMidfielders[i],
+        pivots: teamPivots[i],
         level1Count,
         level2Count
       });
     }
 
     onSaveDraftedTeams(teams).then(() => {
-      toast.success(`${maxTeams} times sorteados com sucesso!`);
+      toast.success(`${maxTeams} times sorteados com sucesso! (7 jogadores por time)`);
     }).catch(() => {
       toast.error("Erro ao salvar times sorteados.");
     });
@@ -156,7 +182,8 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
       goalkeepers: getPlayersByPosition("goalkeeper").length,
       defenders: getPlayersByPosition("defender").length,
       midfielders: getPlayersByPosition("midfielder").length,
-      forwards: getPlayersByPosition("forward").length
+      attackingMidfielders: getPlayersByPosition("attacking_midfielder").length,
+      pivots: getPlayersByPosition("pivot").length
     };
   };
 
@@ -173,7 +200,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
             <div className="text-center">
               <p className="text-2xl font-bold">{counts.goalkeepers}</p>
               <p className="text-sm text-muted-foreground">Goleiros</p>
@@ -187,9 +214,19 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
               <p className="text-sm text-muted-foreground">Meio-campo</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold">{counts.forwards}</p>
-              <p className="text-sm text-muted-foreground">Atacantes</p>
+              <p className="text-2xl font-bold">{counts.attackingMidfielders}</p>
+              <p className="text-sm text-muted-foreground">Meia-atacantes</p>
             </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold">{counts.pivots}</p>
+              <p className="text-sm text-muted-foreground">Pivôs</p>
+            </div>
+          </div>
+          
+          <div className="text-center mb-4">
+            <Badge variant="outline" className="text-sm">
+              Formação: 1 Goleiro + 2 Zagueiros + 1 Meio-campo + 2 Meia-atacantes + 1 Pivô = 7 jogadores
+            </Badge>
           </div>
           
           <div className="flex gap-2 justify-center">
@@ -268,11 +305,26 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                     </div>
                   </div>
 
-                  {/* Atacantes */}
+                  {/* Meia-atacantes */}
                   <div>
-                    <h4 className="font-semibold text-sm mb-1 text-muted-foreground">ATACANTES</h4>
+                    <h4 className="font-semibold text-sm mb-1 text-muted-foreground">MEIA-ATACANTES</h4>
                     <div className="space-y-1">
-                      {team.forwards.map(player => (
+                      {(team as any).attackingMidfielders?.map((player: Player) => (
+                        <div key={player.id} className="flex items-center justify-between bg-secondary/50 p-2 rounded">
+                          <span className="text-sm">{player.name}</span>
+                          <Badge variant={player.level === 1 ? "outline" : "default"} className="text-xs">
+                            N{player.level}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Pivô */}
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1 text-muted-foreground">PIVÔ</h4>
+                    <div className="space-y-1">
+                      {(team as any).pivots?.map((player: Player) => (
                         <div key={player.id} className="flex items-center justify-between bg-secondary/50 p-2 rounded">
                           <span className="text-sm">{player.name}</span>
                           <Badge variant={player.level === 1 ? "outline" : "default"} className="text-xs">
