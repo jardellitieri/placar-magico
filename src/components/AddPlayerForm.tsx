@@ -15,7 +15,7 @@ const positions = [
   "Zagueiro",
   "Meio-campo",
   "Meia-atacante",
-  "Pivô"
+  "Pivo"
 ];
 
 export const AddPlayerForm = ({ onAddPlayer }: AddPlayerFormProps) => {
