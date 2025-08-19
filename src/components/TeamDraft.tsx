@@ -74,15 +74,30 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
     
     // Distribuir jogadores restantes de forma circular
     let teamIndex = 0;
-    while (level1Players.length > 0 || level2Players.length > 0) {
+    let attempts = 0;
+    const maxAttempts = teamsCount * 2; // Evita loop infinito
+    
+    while ((level1Players.length > 0 || level2Players.length > 0) && attempts < maxAttempts) {
+      let playerAdded = false;
+      
       if (teams[teamIndex].length < playersPerPosition) {
         if (level1Players.length > 0) {
           teams[teamIndex].push(level1Players.shift()!);
+          playerAdded = true;
         } else if (level2Players.length > 0) {
           teams[teamIndex].push(level2Players.shift()!);
+          playerAdded = true;
         }
       }
+      
       teamIndex = (teamIndex + 1) % teamsCount;
+      
+      // Se completamos uma volta sem adicionar jogadores, pare para evitar loop infinito
+      if (!playerAdded) {
+        attempts++;
+      } else {
+        attempts = 0; // Reset attempts when we successfully add a player
+      }
     }
     
     return teams;
