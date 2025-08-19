@@ -270,10 +270,6 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                     <Trophy className="h-5 w-5" />
                     {team.name}
                   </span>
-                  <div className="flex gap-1">
-                    <Badge variant="outline">N1: {team.level1Count}</Badge>
-                    <Badge variant="default">N2: {team.level2Count}</Badge>
-                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4">
@@ -282,11 +278,8 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                   <div>
                     <h4 className="font-semibold text-sm mb-1 text-muted-foreground">GOLEIRO</h4>
                     {team.goalkeepers.map(player => (
-                      <div key={player.id} className="flex items-center justify-between bg-secondary/50 p-2 rounded">
+                      <div key={player.id} className="bg-secondary/50 p-2 rounded">
                         <span className="text-sm">{player.name}</span>
-                        <Badge variant={player.level === 1 ? "outline" : "default"} className="text-xs">
-                          N{player.level}
-                        </Badge>
                       </div>
                     ))}
                   </div>
@@ -296,11 +289,8 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                     <h4 className="font-semibold text-sm mb-1 text-muted-foreground">ZAGUEIROS</h4>
                     <div className="space-y-1">
                       {team.defenders.map(player => (
-                        <div key={player.id} className="flex items-center justify-between bg-secondary/50 p-2 rounded">
+                        <div key={player.id} className="bg-secondary/50 p-2 rounded">
                           <span className="text-sm">{player.name}</span>
-                          <Badge variant={player.level === 1 ? "outline" : "default"} className="text-xs">
-                            N{player.level}
-                          </Badge>
                         </div>
                       ))}
                     </div>
@@ -311,11 +301,8 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                     <h4 className="font-semibold text-sm mb-1 text-muted-foreground">MEIO-CAMPO</h4>
                     <div className="space-y-1">
                       {team.midfielders.map(player => (
-                        <div key={player.id} className="flex items-center justify-between bg-secondary/50 p-2 rounded">
+                        <div key={player.id} className="bg-secondary/50 p-2 rounded">
                           <span className="text-sm">{player.name}</span>
-                          <Badge variant={player.level === 1 ? "outline" : "default"} className="text-xs">
-                            N{player.level}
-                          </Badge>
                         </div>
                       ))}
                     </div>
@@ -326,11 +313,8 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                     <h4 className="font-semibold text-sm mb-1 text-muted-foreground">MEIA-ATACANTES</h4>
                     <div className="space-y-1">
                       {(team as any).attackingMidfielders?.map((player: Player) => (
-                        <div key={player.id} className="flex items-center justify-between bg-secondary/50 p-2 rounded">
+                        <div key={player.id} className="bg-secondary/50 p-2 rounded">
                           <span className="text-sm">{player.name}</span>
-                          <Badge variant={player.level === 1 ? "outline" : "default"} className="text-xs">
-                            N{player.level}
-                          </Badge>
                         </div>
                       ))}
                     </div>
@@ -341,11 +325,8 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                     <h4 className="font-semibold text-sm mb-1 text-muted-foreground">PIVÔ</h4>
                     <div className="space-y-1">
                       {(team as any).pivots?.map((player: Player) => (
-                        <div key={player.id} className="flex items-center justify-between bg-secondary/50 p-2 rounded">
+                        <div key={player.id} className="bg-secondary/50 p-2 rounded">
                           <span className="text-sm">{player.name}</span>
-                          <Badge variant={player.level === 1 ? "outline" : "default"} className="text-xs">
-                            N{player.level}
-                          </Badge>
                         </div>
                       ))}
                     </div>
