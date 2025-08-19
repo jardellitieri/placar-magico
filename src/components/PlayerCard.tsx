@@ -25,9 +25,6 @@ export const PlayerCard = ({ players, onRemovePlayer, onUpdatePlayer }: PlayerCa
                 <h3 className="font-semibold">{player.name}</h3>
                 <div className="flex items-center gap-2 mt-1">
                   <Badge variant="outline">{player.position}</Badge>
-                  <Badge variant={player.level === 1 ? "secondary" : "default"}>
-                    Nível {player.level}
-                  </Badge>
                   <Badge variant={player.availableForDraft ? "default" : "destructive"}>
                     {player.availableForDraft ? "Disponível" : "Indisponível"}
                   </Badge>
