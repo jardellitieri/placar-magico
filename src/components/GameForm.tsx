@@ -26,11 +26,34 @@ export const GameForm = ({ players, draftedTeams, onAddGame }: GameFormProps) =>
   const [date, setDate] = useState("");
   const [homeTeam, setHomeTeam] = useState("");
   const [awayTeam, setAwayTeam] = useState("");
-  const [homeGoals, setHomeGoals] = useState(0);
-  const [awayGoals, setAwayGoals] = useState(0);
   const [events, setEvents] = useState<GameEvent[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState("");
   const [eventType, setEventType] = useState<"goal" | "assist">("goal");
+  
+  // Função para encontrar o time de um jogador
+  const findPlayerTeam = (playerId: string): string => {
+    for (const team of draftedTeams) {
+      const allPlayers = [
+        ...team.goalkeepers,
+        ...team.defenders,
+        ...team.midfielders,
+        ...team.forwards
+      ];
+      if (allPlayers.some(p => p.id === playerId)) {
+        return team.name;
+      }
+    }
+    return "";
+  };
+  
+  // Calcular placar automaticamente baseado nos eventos
+  const homeGoals = events.filter(event => 
+    event.type === 'goal' && findPlayerTeam(event.playerId) === homeTeam
+  ).length;
+  
+  const awayGoals = events.filter(event => 
+    event.type === 'goal' && findPlayerTeam(event.playerId) === awayTeam
+  ).length;
 
   const addEvent = () => {
     if (selectedPlayer) {
@@ -68,8 +91,6 @@ export const GameForm = ({ players, draftedTeams, onAddGame }: GameFormProps) =>
       setDate("");
       setHomeTeam("");
       setAwayTeam("");
-      setHomeGoals(0);
-      setAwayGoals(0);
       setEvents([]);
       setSelectedPlayer("");
     }
@@ -131,16 +152,16 @@ export const GameForm = ({ players, draftedTeams, onAddGame }: GameFormProps) =>
                 type="number"
                 min="0"
                 value={homeGoals}
-                onChange={(e) => setHomeGoals(parseInt(e.target.value) || 0)}
-                className="text-center"
+                readOnly
+                className="text-center bg-muted"
               />
               <span className="text-center font-bold">X</span>
               <Input
                 type="number"
                 min="0"
                 value={awayGoals}
-                onChange={(e) => setAwayGoals(parseInt(e.target.value) || 0)}
-                className="text-center"
+                readOnly
+                className="text-center bg-muted"
               />
             </div>
             
@@ -160,11 +181,14 @@ export const GameForm = ({ players, draftedTeams, onAddGame }: GameFormProps) =>
                   <SelectValue placeholder="Jogador" />
                 </SelectTrigger>
                 <SelectContent>
-                  {players.map((player) => (
-                    <SelectItem key={player.id} value={player.id}>
-                      {player.name}
-                    </SelectItem>
-                  ))}
+                  {players.map((player) => {
+                    const playerTeam = findPlayerTeam(player.id);
+                    return (
+                      <SelectItem key={player.id} value={player.id}>
+                        {player.name} {playerTeam && `(${playerTeam})`}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
               
@@ -194,6 +218,7 @@ export const GameForm = ({ players, draftedTeams, onAddGame }: GameFormProps) =>
                         <Users className="h-4 w-4 text-assist" />
                       )}
                       <span>{event.playerName}</span>
+                      <span className="text-muted-foreground">({findPlayerTeam(event.playerId)})</span>
                       <Badge variant={event.type === 'goal' ? 'default' : 'secondary'}>
                         {event.type === 'goal' ? 'Gol' : 'Assistência'}
                       </Badge>
