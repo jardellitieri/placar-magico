@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Player } from "@/types/football";
 import { DraftedTeam } from "@/hooks/useFootballData";
-import { Shuffle, Users, Trophy } from "lucide-react";
+import { Shuffle, Users, Trophy, ArrowLeftRight } from "lucide-react";
 import { toast } from "sonner";
 
 interface TeamDraftProps {
@@ -38,6 +38,8 @@ const TEAM_FORMATION = {
 };
 
 export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDraftedTeams }: TeamDraftProps) => {
+  const [swapMode, setSwapMode] = useState(false);
+  const [selectedPlayers, setSelectedPlayers] = useState<{ player: Player; teamIndex: number; position: string }[]>([]);
 
   const getPlayersByPosition = (position: string) => {
     return players.filter(player => 
@@ -203,6 +205,113 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
     };
   };
 
+  const handlePlayerSelect = (player: Player, teamIndex: number, position: string) => {
+    if (!swapMode) return;
+
+    const playerSelection = { player, teamIndex, position };
+    
+    if (selectedPlayers.length === 0) {
+      setSelectedPlayers([playerSelection]);
+    } else if (selectedPlayers.length === 1) {
+      const firstSelection = selectedPlayers[0];
+      
+      // Verificar se é o mesmo jogador
+      if (firstSelection.player.id === player.id) {
+        setSelectedPlayers([]); // Desselecionar
+        return;
+      }
+      
+      // Verificar se são da mesma posição
+      if (firstSelection.position !== position) {
+        toast.error("Só é possível trocar jogadores da mesma posição!");
+        return;
+      }
+      
+      // Realizar a troca
+      performSwap(firstSelection, playerSelection);
+      setSelectedPlayers([]);
+    }
+  };
+
+  const performSwap = (player1: { player: Player; teamIndex: number; position: string }, player2: { player: Player; teamIndex: number; position: string }) => {
+    const updatedTeams = [...draftedTeams];
+    
+    // Remover jogadores de suas equipes originais
+    const removePlayerFromTeam = (teamIndex: number, playerId: string, position: string) => {
+      const team = updatedTeams[teamIndex];
+      switch (position) {
+        case 'goalkeeper':
+          team.goalkeepers = team.goalkeepers.filter(p => p.id !== playerId);
+          break;
+        case 'defender':
+          team.defenders = team.defenders.filter(p => p.id !== playerId);
+          break;
+        case 'midfielder':
+          team.midfielders = team.midfielders.filter(p => p.id !== playerId);
+          break;
+        case 'attacking_midfielder':
+          (team as any).attackingMidfielders = (team as any).attackingMidfielders.filter((p: Player) => p.id !== playerId);
+          break;
+        case 'pivot':
+          (team as any).pivots = (team as any).pivots.filter((p: Player) => p.id !== playerId);
+          break;
+      }
+      team.players = team.players.filter(p => p.id !== playerId);
+    };
+    
+    // Adicionar jogador ao novo time
+    const addPlayerToTeam = (teamIndex: number, player: Player, position: string) => {
+      const team = updatedTeams[teamIndex];
+      switch (position) {
+        case 'goalkeeper':
+          team.goalkeepers.push(player);
+          break;
+        case 'defender':
+          team.defenders.push(player);
+          break;
+        case 'midfielder':
+          team.midfielders.push(player);
+          break;
+        case 'attacking_midfielder':
+          if (!(team as any).attackingMidfielders) (team as any).attackingMidfielders = [];
+          (team as any).attackingMidfielders.push(player);
+          break;
+        case 'pivot':
+          if (!(team as any).pivots) (team as any).pivots = [];
+          (team as any).pivots.push(player);
+          break;
+      }
+      team.players.push(player);
+      
+      // Atualizar forwards para compatibilidade
+      if (position === 'attacking_midfielder' || position === 'pivot') {
+        team.forwards = [...((team as any).attackingMidfielders || []), ...((team as any).pivots || [])];
+      }
+      
+      // Recalcular contadores de nível
+      team.level1Count = team.players.filter(p => p.level === 1).length;
+      team.level2Count = team.players.filter(p => p.level === 2).length;
+    };
+    
+    // Realizar as trocas
+    removePlayerFromTeam(player1.teamIndex, player1.player.id, player1.position);
+    removePlayerFromTeam(player2.teamIndex, player2.player.id, player2.position);
+    
+    addPlayerToTeam(player2.teamIndex, player1.player, player1.position);
+    addPlayerToTeam(player1.teamIndex, player2.player, player2.position);
+    
+    // Salvar as alterações
+    onSaveDraftedTeams(updatedTeams).then(() => {
+      toast.success(`${player1.player.name} e ${player2.player.name} foram trocados!`);
+    }).catch(() => {
+      toast.error("Erro ao salvar a troca de jogadores.");
+    });
+  };
+
+  const isPlayerSelected = (playerId: string) => {
+    return selectedPlayers.some(selection => selection.player.id === playerId);
+  };
+
   const counts = getPlayerCountsByPosition();
 
   return (
@@ -251,11 +360,42 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
               Sortear Times
             </Button>
             {draftedTeams.length > 0 && (
-              <Button variant="outline" onClick={clearTeams}>
-                Limpar Times
-              </Button>
+              <>
+                <Button 
+                  variant={swapMode ? "default" : "outline"} 
+                  onClick={() => {
+                    setSwapMode(!swapMode);
+                    setSelectedPlayers([]);
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeftRight className="h-4 w-4" />
+                  {swapMode ? "Sair do Modo Troca" : "Trocar Jogadores"}
+                </Button>
+                <Button variant="outline" onClick={clearTeams}>
+                  Limpar Times
+                </Button>
+              </>
             )}
           </div>
+          
+          {swapMode && (
+            <div className="text-center mt-4">
+              <Badge variant="secondary" className="text-sm">
+                Modo troca ativo - Clique em dois jogadores da mesma posição para trocá-los
+              </Badge>
+              {selectedPlayers.length === 1 && (
+                <div className="mt-2">
+                  <Badge variant="default" className="text-sm">
+                    {selectedPlayers[0].player.name} selecionado - Escolha outro jogador da posição {selectedPlayers[0].position === 'goalkeeper' ? 'Goleiro' : 
+                    selectedPlayers[0].position === 'defender' ? 'Zagueiro' :
+                    selectedPlayers[0].position === 'midfielder' ? 'Meio-campo' :
+                    selectedPlayers[0].position === 'attacking_midfielder' ? 'Meia-atacante' : 'Pivô'}
+                  </Badge>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -278,7 +418,19 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                   <div>
                     <h4 className="font-semibold text-sm mb-1 text-muted-foreground">GOLEIRO</h4>
                     {team.goalkeepers.map(player => (
-                      <div key={player.id} className="bg-secondary/50 p-2 rounded">
+                      <div 
+                        key={player.id} 
+                        className={`p-2 rounded transition-colors ${
+                          swapMode 
+                            ? `cursor-pointer hover:bg-primary/20 ${
+                                isPlayerSelected(player.id) 
+                                  ? 'bg-primary/30 border-2 border-primary' 
+                                  : 'bg-secondary/50'
+                              }` 
+                            : 'bg-secondary/50'
+                        }`}
+                        onClick={() => handlePlayerSelect(player, index, 'goalkeeper')}
+                      >
                         <span className="text-sm">{player.name}</span>
                       </div>
                     ))}
@@ -289,7 +441,19 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                     <h4 className="font-semibold text-sm mb-1 text-muted-foreground">ZAGUEIROS</h4>
                     <div className="space-y-1">
                       {team.defenders.map(player => (
-                        <div key={player.id} className="bg-secondary/50 p-2 rounded">
+                        <div 
+                          key={player.id} 
+                          className={`p-2 rounded transition-colors ${
+                            swapMode 
+                              ? `cursor-pointer hover:bg-primary/20 ${
+                                  isPlayerSelected(player.id) 
+                                    ? 'bg-primary/30 border-2 border-primary' 
+                                    : 'bg-secondary/50'
+                                }` 
+                              : 'bg-secondary/50'
+                          }`}
+                          onClick={() => handlePlayerSelect(player, index, 'defender')}
+                        >
                           <span className="text-sm">{player.name}</span>
                         </div>
                       ))}
@@ -301,7 +465,19 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                     <h4 className="font-semibold text-sm mb-1 text-muted-foreground">MEIO-CAMPO</h4>
                     <div className="space-y-1">
                       {team.midfielders.map(player => (
-                        <div key={player.id} className="bg-secondary/50 p-2 rounded">
+                        <div 
+                          key={player.id} 
+                          className={`p-2 rounded transition-colors ${
+                            swapMode 
+                              ? `cursor-pointer hover:bg-primary/20 ${
+                                  isPlayerSelected(player.id) 
+                                    ? 'bg-primary/30 border-2 border-primary' 
+                                    : 'bg-secondary/50'
+                                }` 
+                              : 'bg-secondary/50'
+                          }`}
+                          onClick={() => handlePlayerSelect(player, index, 'midfielder')}
+                        >
                           <span className="text-sm">{player.name}</span>
                         </div>
                       ))}
@@ -313,7 +489,19 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                     <h4 className="font-semibold text-sm mb-1 text-muted-foreground">MEIA-ATACANTES</h4>
                     <div className="space-y-1">
                       {(team as any).attackingMidfielders?.map((player: Player) => (
-                        <div key={player.id} className="bg-secondary/50 p-2 rounded">
+                        <div 
+                          key={player.id} 
+                          className={`p-2 rounded transition-colors ${
+                            swapMode 
+                              ? `cursor-pointer hover:bg-primary/20 ${
+                                  isPlayerSelected(player.id) 
+                                    ? 'bg-primary/30 border-2 border-primary' 
+                                    : 'bg-secondary/50'
+                                }` 
+                              : 'bg-secondary/50'
+                          }`}
+                          onClick={() => handlePlayerSelect(player, index, 'attacking_midfielder')}
+                        >
                           <span className="text-sm">{player.name}</span>
                         </div>
                       ))}
@@ -325,7 +513,19 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                     <h4 className="font-semibold text-sm mb-1 text-muted-foreground">PIVÔ</h4>
                     <div className="space-y-1">
                       {(team as any).pivots?.map((player: Player) => (
-                        <div key={player.id} className="bg-secondary/50 p-2 rounded">
+                        <div 
+                          key={player.id} 
+                          className={`p-2 rounded transition-colors ${
+                            swapMode 
+                              ? `cursor-pointer hover:bg-primary/20 ${
+                                  isPlayerSelected(player.id) 
+                                    ? 'bg-primary/30 border-2 border-primary' 
+                                    : 'bg-secondary/50'
+                                }` 
+                              : 'bg-secondary/50'
+                          }`}
+                          onClick={() => handlePlayerSelect(player, index, 'pivot')}
+                        >
                           <span className="text-sm">{player.name}</span>
                         </div>
                       ))}
