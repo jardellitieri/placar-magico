@@ -24,7 +24,8 @@ const POSITIONS_MAP = {
   "Meia-atacante": "attacking_midfielder",
   "Ponta Direita": "attacking_midfielder",
   "Ponta Esquerda": "attacking_midfielder",
-  "Centroavante": "pivot"
+  "Centroavante": "pivot",
+  "Pivo": "pivot"
 };
 
 // Formação: 1 Goleiro, 2 Zagueiros, 1 Meio-campo, 2 Meia-atacantes, 1 Pivô = 7 jogadores
