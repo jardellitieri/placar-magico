@@ -233,11 +233,47 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
     }
   };
 
+  const handleReservePlayerSelect = (player: Player, position: string) => {
+    if (!swapMode) return;
+
+    const playerSelection = { player, teamIndex: -1, position }; // -1 indica reserva
+    
+    if (selectedPlayers.length === 0) {
+      setSelectedPlayers([playerSelection]);
+    } else if (selectedPlayers.length === 1) {
+      const firstSelection = selectedPlayers[0];
+      
+      // Verificar se é o mesmo jogador
+      if (firstSelection.player.id === player.id) {
+        setSelectedPlayers([]); // Desselecionar
+        return;
+      }
+      
+      // Verificar se são da mesma posição
+      if (firstSelection.position !== position) {
+        toast.error("Só é possível trocar jogadores da mesma posição!");
+        return;
+      }
+      
+      // Só permitir troca se um for da reserva e outro de time
+      if (firstSelection.teamIndex === -1 && playerSelection.teamIndex === -1) {
+        toast.error("Não é possível trocar dois jogadores da reserva!");
+        return;
+      }
+      
+      // Realizar a troca
+      performSwap(firstSelection, playerSelection);
+      setSelectedPlayers([]);
+    }
+  };
+
   const performSwap = (player1: { player: Player; teamIndex: number; position: string }, player2: { player: Player; teamIndex: number; position: string }) => {
     const updatedTeams = [...draftedTeams];
     
-    // Remover jogadores de suas equipes originais
+    // Remover jogadores de suas equipes originais (apenas se não for reserva)
     const removePlayerFromTeam = (teamIndex: number, playerId: string, position: string) => {
+      if (teamIndex === -1) return; // É da reserva, não precisa remover
+      
       const team = updatedTeams[teamIndex];
       switch (position) {
         case 'goalkeeper':
@@ -259,8 +295,10 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
       team.players = team.players.filter(p => p.id !== playerId);
     };
     
-    // Adicionar jogador ao novo time
+    // Adicionar jogador ao novo time (apenas se não for reserva)
     const addPlayerToTeam = (teamIndex: number, player: Player, position: string) => {
+      if (teamIndex === -1) return; // É para reserva, não precisa adicionar
+      
       const team = updatedTeams[teamIndex];
       switch (position) {
         case 'goalkeeper':
@@ -302,10 +340,33 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
     
     // Salvar as alterações
     onSaveDraftedTeams(updatedTeams).then(() => {
-      toast.success(`${player1.player.name} e ${player2.player.name} foram trocados!`);
+      const player1Name = player1.player.name;
+      const player2Name = player2.player.name;
+      
+      if (player1.teamIndex === -1) {
+        toast.success(`${player1Name} entrou no time!`);
+      } else if (player2.teamIndex === -1) {
+        toast.success(`${player2Name} entrou no time!`);
+      } else {
+        toast.success(`${player1Name} e ${player2Name} foram trocados!`);
+      }
     }).catch(() => {
       toast.error("Erro ao salvar a troca de jogadores.");
     });
+  };
+
+  const getReservePlayers = () => {
+    if (draftedTeams.length === 0) return { goalkeepers: [], defenders: [], midfielders: [], attackingMidfielders: [], pivots: [] };
+    
+    const draftedPlayerIds = new Set(draftedTeams.flatMap(team => team.players.map(p => p.id)));
+    
+    return {
+      goalkeepers: getPlayersByPosition("goalkeeper").filter(p => !draftedPlayerIds.has(p.id)),
+      defenders: getPlayersByPosition("defender").filter(p => !draftedPlayerIds.has(p.id)),
+      midfielders: getPlayersByPosition("midfielder").filter(p => !draftedPlayerIds.has(p.id)),
+      attackingMidfielders: getPlayersByPosition("attacking_midfielder").filter(p => !draftedPlayerIds.has(p.id)),
+      pivots: getPlayersByPosition("pivot").filter(p => !draftedPlayerIds.has(p.id))
+    };
   };
 
   const isPlayerSelected = (playerId: string) => {
@@ -401,140 +462,294 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
 
       {/* Times sorteados */}
       {draftedTeams.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {draftedTeams.map((team, index) => (
-            <Card key={index} className="overflow-hidden">
-              <CardHeader className="bg-primary/10">
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Trophy className="h-5 w-5" />
-                    {team.name}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <div className="space-y-3">
-                  {/* Goleiros */}
-                  <div>
-                    <h4 className="font-semibold text-sm mb-1 text-muted-foreground">GOLEIRO</h4>
-                    {team.goalkeepers.map(player => (
-                      <div 
-                        key={player.id} 
-                        className={`p-2 rounded transition-colors ${
-                          swapMode 
-                            ? `cursor-pointer hover:bg-primary/20 ${
-                                isPlayerSelected(player.id) 
-                                  ? 'bg-primary/30 border-2 border-primary' 
-                                  : 'bg-secondary/50'
-                              }` 
-                            : 'bg-secondary/50'
-                        }`}
-                        onClick={() => handlePlayerSelect(player, index, 'goalkeeper')}
-                      >
-                        <span className="text-sm">{player.name}</span>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {draftedTeams.map((team, index) => (
+              <Card key={index} className="overflow-hidden">
+                <CardHeader className="bg-primary/10">
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Trophy className="h-5 w-5" />
+                      {team.name}
+                    </span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    {/* Goleiros */}
+                    <div>
+                      <h4 className="font-semibold text-sm mb-1 text-muted-foreground">GOLEIRO</h4>
+                      {team.goalkeepers.map(player => (
+                        <div 
+                          key={player.id} 
+                          className={`p-2 rounded transition-colors ${
+                            swapMode 
+                              ? `cursor-pointer hover:bg-primary/20 ${
+                                  isPlayerSelected(player.id) 
+                                    ? 'bg-primary/30 border-2 border-primary' 
+                                    : 'bg-secondary/50'
+                                }` 
+                              : 'bg-secondary/50'
+                          }`}
+                          onClick={() => handlePlayerSelect(player, index, 'goalkeeper')}
+                        >
+                          <span className="text-sm">{player.name}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Zagueiros */}
+                    <div>
+                      <h4 className="font-semibold text-sm mb-1 text-muted-foreground">ZAGUEIROS</h4>
+                      <div className="space-y-1">
+                        {team.defenders.map(player => (
+                          <div 
+                            key={player.id} 
+                            className={`p-2 rounded transition-colors ${
+                              swapMode 
+                                ? `cursor-pointer hover:bg-primary/20 ${
+                                    isPlayerSelected(player.id) 
+                                      ? 'bg-primary/30 border-2 border-primary' 
+                                      : 'bg-secondary/50'
+                                  }` 
+                                : 'bg-secondary/50'
+                            }`}
+                            onClick={() => handlePlayerSelect(player, index, 'defender')}
+                          >
+                            <span className="text-sm">{player.name}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    </div>
 
-                  {/* Zagueiros */}
-                  <div>
-                    <h4 className="font-semibold text-sm mb-1 text-muted-foreground">ZAGUEIROS</h4>
-                    <div className="space-y-1">
-                      {team.defenders.map(player => (
-                        <div 
-                          key={player.id} 
-                          className={`p-2 rounded transition-colors ${
-                            swapMode 
-                              ? `cursor-pointer hover:bg-primary/20 ${
-                                  isPlayerSelected(player.id) 
-                                    ? 'bg-primary/30 border-2 border-primary' 
-                                    : 'bg-secondary/50'
-                                }` 
-                              : 'bg-secondary/50'
-                          }`}
-                          onClick={() => handlePlayerSelect(player, index, 'defender')}
-                        >
-                          <span className="text-sm">{player.name}</span>
-                        </div>
-                      ))}
+                    {/* Meio-campo */}
+                    <div>
+                      <h4 className="font-semibold text-sm mb-1 text-muted-foreground">MEIO-CAMPO</h4>
+                      <div className="space-y-1">
+                        {team.midfielders.map(player => (
+                          <div 
+                            key={player.id} 
+                            className={`p-2 rounded transition-colors ${
+                              swapMode 
+                                ? `cursor-pointer hover:bg-primary/20 ${
+                                    isPlayerSelected(player.id) 
+                                      ? 'bg-primary/30 border-2 border-primary' 
+                                      : 'bg-secondary/50'
+                                  }` 
+                                : 'bg-secondary/50'
+                            }`}
+                            onClick={() => handlePlayerSelect(player, index, 'midfielder')}
+                          >
+                            <span className="text-sm">{player.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Meia-atacantes */}
+                    <div>
+                      <h4 className="font-semibold text-sm mb-1 text-muted-foreground">MEIA-ATACANTES</h4>
+                      <div className="space-y-1">
+                        {(team as any).attackingMidfielders?.map((player: Player) => (
+                          <div 
+                            key={player.id} 
+                            className={`p-2 rounded transition-colors ${
+                              swapMode 
+                                ? `cursor-pointer hover:bg-primary/20 ${
+                                    isPlayerSelected(player.id) 
+                                      ? 'bg-primary/30 border-2 border-primary' 
+                                      : 'bg-secondary/50'
+                                  }` 
+                                : 'bg-secondary/50'
+                            }`}
+                            onClick={() => handlePlayerSelect(player, index, 'attacking_midfielder')}
+                          >
+                            <span className="text-sm">{player.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Pivô */}
+                    <div>
+                      <h4 className="font-semibold text-sm mb-1 text-muted-foreground">PIVÔ</h4>
+                      <div className="space-y-1">
+                        {(team as any).pivots?.map((player: Player) => (
+                          <div 
+                            key={player.id} 
+                            className={`p-2 rounded transition-colors ${
+                              swapMode 
+                                ? `cursor-pointer hover:bg-primary/20 ${
+                                    isPlayerSelected(player.id) 
+                                      ? 'bg-primary/30 border-2 border-primary' 
+                                      : 'bg-secondary/50'
+                                  }` 
+                                : 'bg-secondary/50'
+                            }`}
+                            onClick={() => handlePlayerSelect(player, index, 'pivot')}
+                          >
+                            <span className="text-sm">{player.name}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-                  {/* Meio-campo */}
-                  <div>
-                    <h4 className="font-semibold text-sm mb-1 text-muted-foreground">MEIO-CAMPO</h4>
-                    <div className="space-y-1">
-                      {team.midfielders.map(player => (
-                        <div 
-                          key={player.id} 
-                          className={`p-2 rounded transition-colors ${
-                            swapMode 
-                              ? `cursor-pointer hover:bg-primary/20 ${
-                                  isPlayerSelected(player.id) 
-                                    ? 'bg-primary/30 border-2 border-primary' 
-                                    : 'bg-secondary/50'
-                                }` 
-                              : 'bg-secondary/50'
-                          }`}
-                          onClick={() => handlePlayerSelect(player, index, 'midfielder')}
-                        >
-                          <span className="text-sm">{player.name}</span>
+          {/* Lista de Reservas */}
+          {(() => {
+            const reservePlayers = getReservePlayers();
+            const hasReserves = Object.values(reservePlayers).some(positionPlayers => positionPlayers.length > 0);
+            
+            if (!hasReserves) return null;
+            
+            return (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Jogadores Reservas
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                    {/* Goleiros Reservas */}
+                    {reservePlayers.goalkeepers.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-sm mb-2 text-muted-foreground">GOLEIROS</h4>
+                        <div className="space-y-1">
+                          {reservePlayers.goalkeepers.map(player => (
+                            <div 
+                              key={player.id} 
+                              className={`p-2 rounded transition-colors ${
+                                swapMode 
+                                  ? `cursor-pointer hover:bg-primary/20 ${
+                                      isPlayerSelected(player.id) 
+                                        ? 'bg-primary/30 border-2 border-primary' 
+                                        : 'bg-secondary/50'
+                                    }` 
+                                  : 'bg-secondary/50'
+                              }`}
+                              onClick={() => handleReservePlayerSelect(player, 'goalkeeper')}
+                            >
+                              <span className="text-sm">{player.name}</span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
+                    )}
 
-                  {/* Meia-atacantes */}
-                  <div>
-                    <h4 className="font-semibold text-sm mb-1 text-muted-foreground">MEIA-ATACANTES</h4>
-                    <div className="space-y-1">
-                      {(team as any).attackingMidfielders?.map((player: Player) => (
-                        <div 
-                          key={player.id} 
-                          className={`p-2 rounded transition-colors ${
-                            swapMode 
-                              ? `cursor-pointer hover:bg-primary/20 ${
-                                  isPlayerSelected(player.id) 
-                                    ? 'bg-primary/30 border-2 border-primary' 
-                                    : 'bg-secondary/50'
-                                }` 
-                              : 'bg-secondary/50'
-                          }`}
-                          onClick={() => handlePlayerSelect(player, index, 'attacking_midfielder')}
-                        >
-                          <span className="text-sm">{player.name}</span>
+                    {/* Zagueiros Reservas */}
+                    {reservePlayers.defenders.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-sm mb-2 text-muted-foreground">ZAGUEIROS</h4>
+                        <div className="space-y-1">
+                          {reservePlayers.defenders.map(player => (
+                            <div 
+                              key={player.id} 
+                              className={`p-2 rounded transition-colors ${
+                                swapMode 
+                                  ? `cursor-pointer hover:bg-primary/20 ${
+                                      isPlayerSelected(player.id) 
+                                        ? 'bg-primary/30 border-2 border-primary' 
+                                        : 'bg-secondary/50'
+                                    }` 
+                                  : 'bg-secondary/50'
+                              }`}
+                              onClick={() => handleReservePlayerSelect(player, 'defender')}
+                            >
+                              <span className="text-sm">{player.name}</span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
+                    )}
 
-                  {/* Pivô */}
-                  <div>
-                    <h4 className="font-semibold text-sm mb-1 text-muted-foreground">PIVÔ</h4>
-                    <div className="space-y-1">
-                      {(team as any).pivots?.map((player: Player) => (
-                        <div 
-                          key={player.id} 
-                          className={`p-2 rounded transition-colors ${
-                            swapMode 
-                              ? `cursor-pointer hover:bg-primary/20 ${
-                                  isPlayerSelected(player.id) 
-                                    ? 'bg-primary/30 border-2 border-primary' 
-                                    : 'bg-secondary/50'
-                                }` 
-                              : 'bg-secondary/50'
-                          }`}
-                          onClick={() => handlePlayerSelect(player, index, 'pivot')}
-                        >
-                          <span className="text-sm">{player.name}</span>
+                    {/* Meio-campo Reservas */}
+                    {reservePlayers.midfielders.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-sm mb-2 text-muted-foreground">MEIO-CAMPO</h4>
+                        <div className="space-y-1">
+                          {reservePlayers.midfielders.map(player => (
+                            <div 
+                              key={player.id} 
+                              className={`p-2 rounded transition-colors ${
+                                swapMode 
+                                  ? `cursor-pointer hover:bg-primary/20 ${
+                                      isPlayerSelected(player.id) 
+                                        ? 'bg-primary/30 border-2 border-primary' 
+                                        : 'bg-secondary/50'
+                                    }` 
+                                  : 'bg-secondary/50'
+                              }`}
+                              onClick={() => handleReservePlayerSelect(player, 'midfielder')}
+                            >
+                              <span className="text-sm">{player.name}</span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
+
+                    {/* Meia-atacantes Reservas */}
+                    {reservePlayers.attackingMidfielders.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-sm mb-2 text-muted-foreground">MEIA-ATACANTES</h4>
+                        <div className="space-y-1">
+                          {reservePlayers.attackingMidfielders.map(player => (
+                            <div 
+                              key={player.id} 
+                              className={`p-2 rounded transition-colors ${
+                                swapMode 
+                                  ? `cursor-pointer hover:bg-primary/20 ${
+                                      isPlayerSelected(player.id) 
+                                        ? 'bg-primary/30 border-2 border-primary' 
+                                        : 'bg-secondary/50'
+                                    }` 
+                                  : 'bg-secondary/50'
+                              }`}
+                              onClick={() => handleReservePlayerSelect(player, 'attacking_midfielder')}
+                            >
+                              <span className="text-sm">{player.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Pivôs Reservas */}
+                    {reservePlayers.pivots.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-sm mb-2 text-muted-foreground">PIVÔS</h4>
+                        <div className="space-y-1">
+                          {reservePlayers.pivots.map(player => (
+                            <div 
+                              key={player.id} 
+                              className={`p-2 rounded transition-colors ${
+                                swapMode 
+                                  ? `cursor-pointer hover:bg-primary/20 ${
+                                      isPlayerSelected(player.id) 
+                                        ? 'bg-primary/30 border-2 border-primary' 
+                                        : 'bg-secondary/50'
+                                    }` 
+                                  : 'bg-secondary/50'
+                              }`}
+                              onClick={() => handleReservePlayerSelect(player, 'pivot')}
+                            >
+                              <span className="text-sm">{player.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })()}
         </div>
       )}
     </div>
