@@ -54,52 +54,65 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
     
     const teams: Player[][] = Array.from({ length: teamsCount }, () => []);
     
-    // Distribuir jogadores por posição, priorizando equilíbrio entre níveis
+    // Calcular distribuição ideal por time
+    const totalLevel1 = level1Players.length;
+    const totalLevel2 = level2Players.length;
     const totalPlayersNeeded = teamsCount * playersPerPosition;
-    const targetLevel1PerTeam = Math.floor(level1Players.length / teamsCount);
-    const targetLevel2PerTeam = Math.floor(level2Players.length / teamsCount);
     
-    // Primeiro, distribuir de forma equilibrada
+    // Se não temos jogadores suficientes, usar o que temos
+    const availablePlayers = Math.min(totalLevel1 + totalLevel2, totalPlayersNeeded);
+    
+    // Distribuir de forma mais equilibrada possível
+    // Priorizar que cada time tenha pelo menos um de cada nível quando possível
+    let level1Index = 0;
+    let level2Index = 0;
+    
     for (let teamIndex = 0; teamIndex < teamsCount; teamIndex++) {
-      // Adicionar jogadores nível 1 (limitado ao que temos)
-      const level1ToAdd = Math.min(targetLevel1PerTeam, playersPerPosition);
-      for (let i = 0; i < level1ToAdd && level1Players.length > 0; i++) {
-        teams[teamIndex].push(level1Players.shift()!);
-      }
+      const currentTeamPlayers: Player[] = [];
       
-      // Completar com jogadores nível 2
-      const remainingSlots = playersPerPosition - teams[teamIndex].length;
-      for (let i = 0; i < remainingSlots && level2Players.length > 0; i++) {
-        teams[teamIndex].push(level2Players.shift()!);
-      }
-    }
-    
-    // Distribuir jogadores restantes de forma circular
-    let teamIndex = 0;
-    let attempts = 0;
-    const maxAttempts = teamsCount * 2; // Evita loop infinito
-    
-    while ((level1Players.length > 0 || level2Players.length > 0) && attempts < maxAttempts) {
-      let playerAdded = false;
-      
-      if (teams[teamIndex].length < playersPerPosition) {
-        if (level1Players.length > 0) {
-          teams[teamIndex].push(level1Players.shift()!);
-          playerAdded = true;
-        } else if (level2Players.length > 0) {
-          teams[teamIndex].push(level2Players.shift()!);
-          playerAdded = true;
+      // Para cada slot neste time
+      for (let slot = 0; slot < playersPerPosition; slot++) {
+        // Calcular quantos jogadores de cada nível já foram distribuídos neste time
+        const currentLevel1InTeam = currentTeamPlayers.filter(p => p.level === 1).length;
+        const currentLevel2InTeam = currentTeamPlayers.filter(p => p.level === 2).length;
+        
+        // Calcular quantos ainda precisamos distribuir globalmente
+        const remainingLevel1 = totalLevel1 - level1Index;
+        const remainingLevel2 = totalLevel2 - level2Index;
+        const remainingSlots = (teamsCount - teamIndex) * playersPerPosition - currentTeamPlayers.length;
+        
+        // Decidir qual nível priorizar para manter equilíbrio
+        let preferLevel1 = false;
+        
+        if (remainingLevel1 > 0 && remainingLevel2 > 0) {
+          // Se ambos estão disponíveis, priorizar o que está menos representado neste time
+          if (currentLevel1InTeam < currentLevel2InTeam) {
+            preferLevel1 = true;
+          } else if (currentLevel1InTeam > currentLevel2InTeam) {
+            preferLevel1 = false;
+          } else {
+            // Se estão iguais, priorizar baseado na distribuição global restante
+            preferLevel1 = remainingLevel1 >= remainingLevel2;
+          }
+        } else {
+          // Se só um está disponível, usar esse
+          preferLevel1 = remainingLevel1 > 0;
+        }
+        
+        // Adicionar jogador baseado na preferência
+        if (preferLevel1 && level1Index < totalLevel1) {
+          currentTeamPlayers.push(level1Players[level1Index]);
+          level1Index++;
+        } else if (level2Index < totalLevel2) {
+          currentTeamPlayers.push(level2Players[level2Index]);
+          level2Index++;
+        } else if (level1Index < totalLevel1) {
+          currentTeamPlayers.push(level1Players[level1Index]);
+          level1Index++;
         }
       }
       
-      teamIndex = (teamIndex + 1) % teamsCount;
-      
-      // Se completamos uma volta sem adicionar jogadores, pare para evitar loop infinito
-      if (!playerAdded) {
-        attempts++;
-      } else {
-        attempts = 0; // Reset attempts when we successfully add a player
-      }
+      teams[teamIndex] = currentTeamPlayers;
     }
     
     return teams;
