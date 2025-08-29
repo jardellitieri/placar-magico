@@ -323,6 +323,38 @@ export const useFootballData = () => {
     }
   };
 
+  const resetAllData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User must be authenticated to reset data');
+      }
+
+      // Clear all games and events
+      await supabase.from('game_events').delete().eq('user_id', user.id);
+      await supabase.from('games').delete().eq('user_id', user.id);
+      
+      // Clear drafted teams
+      await supabase.from('drafted_teams').delete().eq('user_id', user.id);
+      
+      // Reset player statistics but keep players
+      await supabase
+        .from('players')
+        .update({
+          goals: 0,
+          assists: 0,
+          games_played: 0
+        })
+        .eq('user_id', user.id);
+
+      // Reload data to reflect changes
+      await loadData();
+    } catch (error) {
+      console.error('Error resetting all data:', error);
+      throw error;
+    }
+  };
+
   const updatePlayer = async (playerId: string, updates: Partial<Player>) => {
     try {
       const { error } = await supabase
@@ -359,6 +391,7 @@ export const useFootballData = () => {
     addGame,
     getPlayerStats,
     saveDraftedTeams,
-    clearDraftedTeams
+    clearDraftedTeams,
+    resetAllData
   };
 };

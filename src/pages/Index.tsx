@@ -11,7 +11,7 @@ import { StatsTable } from "@/components/StatsTable";
 import { GamesList } from "@/components/GamesList";
 import { AuthForm } from "@/components/AuthForm";
 import { TeamDraft } from "@/components/TeamDraft";
-import { Users, Calendar, Trophy, Activity, Shield, Download, Shuffle, LogOut } from "lucide-react";
+import { Users, Calendar, Trophy, Activity, Shield, Download, Shuffle, LogOut, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { exportStatsToExcel } from "@/utils/excelExport";
 
@@ -28,7 +28,8 @@ const Index = () => {
     addGame,
     getPlayerStats,
     saveDraftedTeams,
-    clearDraftedTeams
+    clearDraftedTeams,
+    resetAllData
   } = useFootballData();
   const { toast } = useToast();
 
@@ -104,6 +105,22 @@ const Index = () => {
       title: "Excel exportado!",
       description: "As estatísticas foram exportadas com sucesso.",
     });
+  };
+
+  const handleResetAllData = async () => {
+    try {
+      await resetAllData();
+      toast({
+        title: "Dados zerados!",
+        description: "Todas as estatísticas e históricos foram zerados.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao zerar dados",
+        description: "Ocorreu um erro ao zerar os dados. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const playerStats = getPlayerStats();
@@ -271,7 +288,15 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="stats" className="space-y-6">
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-end gap-2 mb-4">
+              <Button 
+                onClick={handleResetAllData} 
+                variant="destructive" 
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Zerar Estatísticas
+              </Button>
               <Button onClick={handleExportToExcel} className="flex items-center gap-2">
                 <Download className="h-4 w-4" />
                 Exportar para Excel
