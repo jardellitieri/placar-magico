@@ -209,12 +209,38 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
   };
 
   const getPlayerCountsByPosition = () => {
+    const goalkeepers = getPlayersByPosition("goalkeeper");
+    const defenders = getPlayersByPosition("defender");
+    const midfielders = getPlayersByPosition("midfielder");
+    const attackingMidfielders = getPlayersByPosition("attacking_midfielder");
+    const pivots = getPlayersByPosition("pivot");
+
     return {
-      goalkeepers: getPlayersByPosition("goalkeeper").length,
-      defenders: getPlayersByPosition("defender").length,
-      midfielders: getPlayersByPosition("midfielder").length,
-      attackingMidfielders: getPlayersByPosition("attacking_midfielder").length,
-      pivots: getPlayersByPosition("pivot").length
+      goalkeepers: {
+        total: goalkeepers.length,
+        level1: goalkeepers.filter(p => p.level === 1).length,
+        level2: goalkeepers.filter(p => p.level === 2).length
+      },
+      defenders: {
+        total: defenders.length,
+        level1: defenders.filter(p => p.level === 1).length,
+        level2: defenders.filter(p => p.level === 2).length
+      },
+      midfielders: {
+        total: midfielders.length,
+        level1: midfielders.filter(p => p.level === 1).length,
+        level2: midfielders.filter(p => p.level === 2).length
+      },
+      attackingMidfielders: {
+        total: attackingMidfielders.length,
+        level1: attackingMidfielders.filter(p => p.level === 1).length,
+        level2: attackingMidfielders.filter(p => p.level === 2).length
+      },
+      pivots: {
+        total: pivots.length,
+        level1: pivots.filter(p => p.level === 1).length,
+        level2: pivots.filter(p => p.level === 2).length
+      }
     };
   };
 
@@ -399,26 +425,66 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold">{counts.goalkeepers}</p>
-              <p className="text-sm text-muted-foreground">Goleiros</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+            <div className="text-center p-3 bg-muted/50 rounded-lg">
+              <p className="text-2xl font-bold text-primary">{counts.goalkeepers.total}</p>
+              <p className="text-sm font-medium mb-1">Goleiros</p>
+              <div className="flex justify-center gap-2 text-xs">
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  Nível 1: {counts.goalkeepers.level1}
+                </span>
+                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                  Nível 2: {counts.goalkeepers.level2}
+                </span>
+              </div>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold">{counts.defenders}</p>
-              <p className="text-sm text-muted-foreground">Zagueiros</p>
+            <div className="text-center p-3 bg-muted/50 rounded-lg">
+              <p className="text-2xl font-bold text-primary">{counts.defenders.total}</p>
+              <p className="text-sm font-medium mb-1">Zagueiros</p>
+              <div className="flex justify-center gap-2 text-xs">
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  Nível 1: {counts.defenders.level1}
+                </span>
+                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                  Nível 2: {counts.defenders.level2}
+                </span>
+              </div>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold">{counts.midfielders}</p>
-              <p className="text-sm text-muted-foreground">Meio-campo</p>
+            <div className="text-center p-3 bg-muted/50 rounded-lg">
+              <p className="text-2xl font-bold text-primary">{counts.midfielders.total}</p>
+              <p className="text-sm font-medium mb-1">Meio-campo</p>
+              <div className="flex justify-center gap-2 text-xs">
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  Nível 1: {counts.midfielders.level1}
+                </span>
+                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                  Nível 2: {counts.midfielders.level2}
+                </span>
+              </div>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold">{counts.attackingMidfielders}</p>
-              <p className="text-sm text-muted-foreground">Meia-atacantes</p>
+            <div className="text-center p-3 bg-muted/50 rounded-lg">
+              <p className="text-2xl font-bold text-primary">{counts.attackingMidfielders.total}</p>
+              <p className="text-sm font-medium mb-1">Meia-atacantes</p>
+              <div className="flex justify-center gap-2 text-xs">
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  Nível 1: {counts.attackingMidfielders.level1}
+                </span>
+                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                  Nível 2: {counts.attackingMidfielders.level2}
+                </span>
+              </div>
             </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold">{counts.pivots}</p>
-              <p className="text-sm text-muted-foreground">Pivôs</p>
+            <div className="text-center p-3 bg-muted/50 rounded-lg">
+              <p className="text-2xl font-bold text-primary">{counts.pivots.total}</p>
+              <p className="text-sm font-medium mb-1">Pivôs</p>
+              <div className="flex justify-center gap-2 text-xs">
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                  Nível 1: {counts.pivots.level1}
+                </span>
+                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                  Nível 2: {counts.pivots.level2}
+                </span>
+              </div>
             </div>
           </div>
           
