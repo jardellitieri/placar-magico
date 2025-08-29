@@ -8,9 +8,11 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PlayerStats, Game } from "@/types/football";
 import { DraftedTeam } from "@/hooks/useFootballData";
-import { Trophy, Target, Users, Shield } from "lucide-react";
+import { Trophy, Target, Users, Shield, Calendar } from "lucide-react";
+import { useState } from "react";
 
 interface StatsTableProps {
   playerStats: PlayerStats[];
@@ -20,6 +22,8 @@ interface StatsTableProps {
 }
 
 export const StatsTable = ({ playerStats, draftedTeams, players, games }: StatsTableProps) => {
+  const [selectedDate, setSelectedDate] = useState<string>("all");
+
   const getPlayerTeam = (playerId: string) => {
     for (const team of draftedTeams) {
       if (team.players.some(p => p.id === playerId)) {
@@ -29,26 +33,78 @@ export const StatsTable = ({ playerStats, draftedTeams, players, games }: StatsT
     return null;
   };
 
-  // Ranking de gols
-  const goalRanking = [...playerStats]
+  // Obter datas únicas dos jogos
+  const uniqueDates = [...new Set(games.map(game => game.date))].sort().reverse();
+
+  // Filtrar jogos por data selecionada (para rankings específicos)
+  const filteredGames = selectedDate === "all" ? games : games.filter(game => game.date === selectedDate);
+
+  // Calcular estatísticas por data selecionada
+  const getStatsForDate = (gamesForDate: Game[]) => {
+    const statsMap = new Map<string, { goals: number; assists: number; gamesPlayed: number }>();
+    
+    // Inicializar com todos os jogadores
+    players.forEach(player => {
+      statsMap.set(player.id, { goals: 0, assists: 0, gamesPlayed: 0 });
+    });
+
+    // Contar estatísticas dos jogos filtrados
+    gamesForDate.forEach(game => {
+      const playersInGame = new Set<string>();
+      
+      game.events.forEach(event => {
+        playersInGame.add(event.playerId);
+        const stats = statsMap.get(event.playerId);
+        if (stats) {
+          if (event.type === 'goal') {
+            stats.goals++;
+          } else if (event.type === 'assist') {
+            stats.assists++;
+          }
+        }
+      });
+
+      // Contar jogos para jogadores que participaram
+      playersInGame.forEach(playerId => {
+        const stats = statsMap.get(playerId);
+        if (stats) {
+          stats.gamesPlayed++;
+        }
+      });
+    });
+
+    return Array.from(statsMap.entries()).map(([playerId, stats]) => {
+      const player = players.find(p => p.id === playerId);
+      return {
+        playerId,
+        name: player?.name || 'Desconhecido',
+        ...stats
+      };
+    });
+  };
+
+  const dateStats = getStatsForDate(filteredGames);
+
+  // Ranking de gols (por data selecionada)
+  const goalRanking = dateStats
     .filter(p => p.goals > 0)
     .sort((a, b) => b.goals - a.goals)
     .slice(0, 10);
 
-  // Ranking de assistências
-  const assistRanking = [...playerStats]
+  // Ranking de assistências (por data selecionada)
+  const assistRanking = dateStats
     .filter(p => p.assists > 0)
     .sort((a, b) => b.assists - a.assists)
     .slice(0, 10);
 
-  // Calcular gols sofridos por goleiro
+  // Calcular gols sofridos por goleiro (por data selecionada)
   const goalkeepers = players.filter(p => p.position === 'Goleiro');
   const goalkeeperStats = goalkeepers.map(gk => {
-    const gamesPlayed = games.filter(game => 
+    const gamesPlayed = filteredGames.filter(game => 
       game.events.some(event => event.playerId === gk.id)
     ).length;
     
-    const goalsConceded = games.reduce((total, game) => {
+    const goalsConceded = filteredGames.reduce((total, game) => {
       const isGoalkeeperInGame = game.events.some(event => event.playerId === gk.id);
       if (!isGoalkeeperInGame) return total;
       
@@ -149,6 +205,40 @@ export const StatsTable = ({ playerStats, draftedTeams, players, games }: StatsT
               </TableBody>
             </Table>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Seletor de data para rankings específicos */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Rankings por Data
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-sm font-medium">Filtrar por data:</span>
+            <Select value={selectedDate} onValueChange={setSelectedDate}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Selecionar data" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as datas</SelectItem>
+                {uniqueDates.map(date => (
+                  <SelectItem key={date} value={date}>
+                    {new Date(date).toLocaleDateString('pt-BR')}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {selectedDate === "all" 
+              ? "Mostrando estatísticas de todas as datas" 
+              : `Mostrando estatísticas do dia ${new Date(selectedDate).toLocaleDateString('pt-BR')}`
+            }
+          </p>
         </CardContent>
       </Card>
 
