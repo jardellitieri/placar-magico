@@ -439,15 +439,15 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
               </div>
               <div className="space-y-1">
                 <div className="text-xs text-left">
-                  <p className="font-medium text-blue-600 mb-1">Nível 1:</p>
+                  <p className="font-medium text-foreground mb-1">Nível 1:</p>
                   {getPlayersByPosition("goalkeeper").filter(p => p.level === 1).map(player => (
-                    <p key={player.id} className="text-xs text-blue-800">{player.name}</p>
+                    <p key={player.id} className="text-xs text-foreground">{player.name}</p>
                   ))}
                 </div>
                 <div className="text-xs text-left">
-                  <p className="font-medium text-green-600 mb-1">Nível 2:</p>
+                  <p className="font-medium text-primary mb-1">Nível 2:</p>
                   {getPlayersByPosition("goalkeeper").filter(p => p.level === 2).map(player => (
-                    <p key={player.id} className="text-xs text-green-800">{player.name}</p>
+                    <p key={player.id} className="text-xs text-primary">{player.name}</p>
                   ))}
                 </div>
               </div>
@@ -465,15 +465,15 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
               </div>
               <div className="space-y-1">
                 <div className="text-xs text-left">
-                  <p className="font-medium text-blue-600 mb-1">Nível 1:</p>
+                  <p className="font-medium text-foreground mb-1">Nível 1:</p>
                   {getPlayersByPosition("defender").filter(p => p.level === 1).map(player => (
-                    <p key={player.id} className="text-xs text-blue-800">{player.name}</p>
+                    <p key={player.id} className="text-xs text-foreground">{player.name}</p>
                   ))}
                 </div>
                 <div className="text-xs text-left">
-                  <p className="font-medium text-green-600 mb-1">Nível 2:</p>
+                  <p className="font-medium text-primary mb-1">Nível 2:</p>
                   {getPlayersByPosition("defender").filter(p => p.level === 2).map(player => (
-                    <p key={player.id} className="text-xs text-green-800">{player.name}</p>
+                    <p key={player.id} className="text-xs text-primary">{player.name}</p>
                   ))}
                 </div>
               </div>
@@ -491,15 +491,15 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
               </div>
               <div className="space-y-1">
                 <div className="text-xs text-left">
-                  <p className="font-medium text-blue-600 mb-1">Nível 1:</p>
+                  <p className="font-medium text-foreground mb-1">Nível 1:</p>
                   {getPlayersByPosition("midfielder").filter(p => p.level === 1).map(player => (
-                    <p key={player.id} className="text-xs text-blue-800">{player.name}</p>
+                    <p key={player.id} className="text-xs text-foreground">{player.name}</p>
                   ))}
                 </div>
                 <div className="text-xs text-left">
-                  <p className="font-medium text-green-600 mb-1">Nível 2:</p>
+                  <p className="font-medium text-primary mb-1">Nível 2:</p>
                   {getPlayersByPosition("midfielder").filter(p => p.level === 2).map(player => (
-                    <p key={player.id} className="text-xs text-green-800">{player.name}</p>
+                    <p key={player.id} className="text-xs text-primary">{player.name}</p>
                   ))}
                 </div>
               </div>
@@ -517,15 +517,15 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
               </div>
               <div className="space-y-1">
                 <div className="text-xs text-left">
-                  <p className="font-medium text-blue-600 mb-1">Nível 1:</p>
+                  <p className="font-medium text-foreground mb-1">Nível 1:</p>
                   {getPlayersByPosition("attacking_midfielder").filter(p => p.level === 1).map(player => (
-                    <p key={player.id} className="text-xs text-blue-800">{player.name}</p>
+                    <p key={player.id} className="text-xs text-foreground">{player.name}</p>
                   ))}
                 </div>
                 <div className="text-xs text-left">
-                  <p className="font-medium text-green-600 mb-1">Nível 2:</p>
+                  <p className="font-medium text-primary mb-1">Nível 2:</p>
                   {getPlayersByPosition("attacking_midfielder").filter(p => p.level === 2).map(player => (
-                    <p key={player.id} className="text-xs text-green-800">{player.name}</p>
+                    <p key={player.id} className="text-xs text-primary">{player.name}</p>
                   ))}
                 </div>
               </div>
@@ -543,15 +543,15 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
               </div>
               <div className="space-y-1">
                 <div className="text-xs text-left">
-                  <p className="font-medium text-blue-600 mb-1">Nível 1:</p>
+                  <p className="font-medium text-foreground mb-1">Nível 1:</p>
                   {getPlayersByPosition("pivot").filter(p => p.level === 1).map(player => (
-                    <p key={player.id} className="text-xs text-blue-800">{player.name}</p>
+                    <p key={player.id} className="text-xs text-foreground">{player.name}</p>
                   ))}
                 </div>
                 <div className="text-xs text-left">
-                  <p className="font-medium text-green-600 mb-1">Nível 2:</p>
+                  <p className="font-medium text-primary mb-1">Nível 2:</p>
                   {getPlayersByPosition("pivot").filter(p => p.level === 2).map(player => (
-                    <p key={player.id} className="text-xs text-green-800">{player.name}</p>
+                    <p key={player.id} className="text-xs text-primary">{player.name}</p>
                   ))}
                 </div>
               </div>
