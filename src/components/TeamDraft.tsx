@@ -325,10 +325,10 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
           team.midfielders = team.midfielders.filter(p => p.id !== playerId);
           break;
         case 'attacking_midfielder':
-          (team as any).attackingMidfielders = (team as any).attackingMidfielders.filter((p: Player) => p.id !== playerId);
+          team.attackingMidfielders = team.attackingMidfielders?.filter(p => p.id !== playerId) || [];
           break;
         case 'pivot':
-          (team as any).pivots = (team as any).pivots.filter((p: Player) => p.id !== playerId);
+          team.pivots = team.pivots?.filter(p => p.id !== playerId) || [];
           break;
       }
       team.players = team.players.filter(p => p.id !== playerId);
@@ -350,19 +350,19 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
           team.midfielders.push(player);
           break;
         case 'attacking_midfielder':
-          if (!(team as any).attackingMidfielders) (team as any).attackingMidfielders = [];
-          (team as any).attackingMidfielders.push(player);
+          if (!team.attackingMidfielders) team.attackingMidfielders = [];
+          team.attackingMidfielders.push(player);
           break;
         case 'pivot':
-          if (!(team as any).pivots) (team as any).pivots = [];
-          (team as any).pivots.push(player);
+          if (!team.pivots) team.pivots = [];
+          team.pivots.push(player);
           break;
       }
       team.players.push(player);
       
       // Atualizar forwards para compatibilidade
       if (position === 'attacking_midfielder' || position === 'pivot') {
-        team.forwards = [...((team as any).attackingMidfielders || []), ...((team as any).pivots || [])];
+        team.forwards = [...(team.attackingMidfielders || []), ...(team.pivots || [])];
       }
       
       // Recalcular contadores de nível
@@ -699,7 +699,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                     <div>
                       <h4 className="font-semibold text-sm mb-1 text-muted-foreground">MEIA-ATACANTES</h4>
                       <div className="space-y-1">
-                        {(team as any).attackingMidfielders?.map((player: Player) => (
+                        {team.attackingMidfielders?.map((player: Player) => (
                           <div 
                             key={player.id} 
                             className={`p-2 rounded transition-colors ${
@@ -723,7 +723,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                     <div>
                       <h4 className="font-semibold text-sm mb-1 text-muted-foreground">PIVÔ</h4>
                       <div className="space-y-1">
-                        {(team as any).pivots?.map((player: Player) => (
+                        {team.pivots?.map((player: Player) => (
                           <div 
                             key={player.id} 
                             className={`p-2 rounded transition-colors ${

@@ -89,16 +89,30 @@ export const useFootballData = () => {
       }
 
       if (draftedTeamsData) {
-        const formattedTeams = draftedTeamsData.map(team => ({
-          name: team.name,
-          players: typeof team.players === 'string' ? JSON.parse(team.players) : (team.players as unknown) as Player[],
-          goalkeepers: typeof team.goalkeepers === 'string' ? JSON.parse(team.goalkeepers) : (team.goalkeepers as unknown) as Player[],
-          defenders: typeof team.defenders === 'string' ? JSON.parse(team.defenders) : (team.defenders as unknown) as Player[],
-          midfielders: typeof team.midfielders === 'string' ? JSON.parse(team.midfielders) : (team.midfielders as unknown) as Player[],
-          forwards: typeof team.forwards === 'string' ? JSON.parse(team.forwards) : (team.forwards as unknown) as Player[],
-          level1Count: team.level1_count,
-          level2Count: team.level2_count
-        }));
+        const formattedTeams = draftedTeamsData.map(team => {
+          const forwards = typeof team.forwards === 'string' ? JSON.parse(team.forwards) : (team.forwards as unknown) as Player[];
+          
+          // Separar attackingMidfielders e pivots dos forwards baseado na posição
+          const attackingMidfielders = forwards.filter(player => 
+            ['Meia-atacante', 'Ponta Direita', 'Ponta Esquerda'].includes(player.position)
+          );
+          const pivots = forwards.filter(player => 
+            ['Centroavante', 'Pivo'].includes(player.position)
+          );
+          
+          return {
+            name: team.name,
+            players: typeof team.players === 'string' ? JSON.parse(team.players) : (team.players as unknown) as Player[],
+            goalkeepers: typeof team.goalkeepers === 'string' ? JSON.parse(team.goalkeepers) : (team.goalkeepers as unknown) as Player[],
+            defenders: typeof team.defenders === 'string' ? JSON.parse(team.defenders) : (team.defenders as unknown) as Player[],
+            midfielders: typeof team.midfielders === 'string' ? JSON.parse(team.midfielders) : (team.midfielders as unknown) as Player[],
+            forwards,
+            attackingMidfielders,
+            pivots,
+            level1Count: team.level1_count,
+            level2Count: team.level2_count
+          };
+        });
         setDraftedTeams(formattedTeams);
       }
     } catch (error) {
