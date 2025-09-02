@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Player, Game, PlayerStats } from '@/types/football';
+import { Player, Game, PlayerStats, GameEvent } from '@/types/football';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface DraftedTeam {
@@ -337,6 +337,116 @@ export const useFootballData = () => {
     }
   };
 
+  const updateGame = async (gameId: string, updatedGame: {
+    date: string;
+    homeTeam: string;
+    awayTeam: string;
+    homeGoals: number;
+    awayGoals: number;
+    events: GameEvent[];
+  }) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User must be authenticated to update games');
+      }
+
+      // Get original game data to revert player stats
+      const originalGame = games.find(g => g.id === gameId);
+      if (originalGame) {
+        await revertPlayerStats(originalGame);
+      }
+
+      // Update game
+      const { error: gameError } = await supabase
+        .from('games')
+        .update({
+          date: updatedGame.date,
+          home_team: updatedGame.homeTeam,
+          away_team: updatedGame.awayTeam,
+          home_goals: updatedGame.homeGoals,
+          away_goals: updatedGame.awayGoals
+        })
+        .eq('id', gameId);
+
+      if (gameError) throw gameError;
+
+      // Delete existing game events
+      await supabase
+        .from('game_events')
+        .delete()
+        .eq('game_id', gameId);
+
+      // Insert new game events
+      if (updatedGame.events.length > 0) {
+        const gameEvents = updatedGame.events.map(event => ({
+          game_id: gameId,
+          player_id: event.playerId,
+          player_name: event.playerName,
+          event_type: event.type,
+          minute: event.minute,
+          user_id: user.id
+        }));
+
+        const { error: eventsError } = await supabase
+          .from('game_events')
+          .insert(gameEvents);
+
+        if (eventsError) throw eventsError;
+      }
+
+      // Update player stats with new data
+      await updatePlayerStats(updatedGame);
+
+      // Reload data to get fresh stats
+      await loadData();
+    } catch (error) {
+      console.error('Error updating game:', error);
+      throw error;
+    }
+  };
+
+  const revertPlayerStats = async (game: Game) => {
+    const playerUpdates: { [key: string]: { goals: number; assists: number } } = {};
+    
+    // Count events for each player to subtract
+    game.events.forEach(event => {
+      if (!playerUpdates[event.playerId]) {
+        playerUpdates[event.playerId] = { goals: 0, assists: 0 };
+      }
+      
+      if (event.type === 'goal') {
+        playerUpdates[event.playerId].goals++;
+      } else if (event.type === 'assist') {
+        playerUpdates[event.playerId].assists++;
+      }
+    });
+
+    // Get all players who participated
+    const participatingPlayers = new Set(game.events.map(e => e.playerId));
+
+    // Update each player in the database (subtract stats)
+    for (const player of players) {
+      const updates = playerUpdates[player.id];
+      const participated = participatingPlayers.has(player.id);
+      
+      if (updates || participated) {
+        const newGoals = Math.max(0, player.goals - (updates?.goals || 0));
+        const newAssists = Math.max(0, player.assists - (updates?.assists || 0));
+        const newGamesPlayed = Math.max(0, player.gamesPlayed - (participated ? 1 : 0));
+
+        await supabase
+          .from('players')
+          .update({
+            goals: newGoals,
+            assists: newAssists,
+            games_played: newGamesPlayed
+          })
+          .eq('id', player.id);
+      }
+    }
+  };
+
   const resetAllData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -403,6 +513,7 @@ export const useFootballData = () => {
     removePlayer,
     updatePlayer,
     addGame,
+    updateGame,
     getPlayerStats,
     saveDraftedTeams,
     clearDraftedTeams,

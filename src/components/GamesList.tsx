@@ -1,13 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Game } from "@/types/football";
-import { Calendar, Target, Users } from "lucide-react";
+import { Calendar, Target, Users, Edit } from "lucide-react";
 
 interface GamesListProps {
   games: Game[];
+  onEditGame?: (game: Game) => void;
 }
 
-export const GamesList = ({ games }: GamesListProps) => {
+export const GamesList = ({ games, onEditGame }: GamesListProps) => {
   const sortedGames = [...games].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
@@ -34,28 +36,40 @@ export const GamesList = ({ games }: GamesListProps) => {
               const isDraw = game.homeGoals === game.awayGoals;
               
               return (
-                <div key={game.id} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-semibold">
-                          {game.homeTeam} vs {game.awayTeam}
-                        </h4>
-                        <Badge 
-                          variant={homeWin ? "default" : isDraw ? "secondary" : "destructive"}
-                        >
-                          {homeWin ? `${game.homeTeam} venceu` : isDraw ? "Empate" : `${game.awayTeam} venceu`}
-                        </Badge>
+                  <div key={game.id} className="border rounded-lg p-4 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold">
+                            {game.homeTeam} vs {game.awayTeam}
+                          </h4>
+                          <Badge 
+                            variant={homeWin ? "default" : isDraw ? "secondary" : "destructive"}
+                          >
+                            {homeWin ? `${game.homeTeam} venceu` : isDraw ? "Empate" : `${game.awayTeam} venceu`}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{date}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{date}</p>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right">
+                          <p className="text-2xl font-bold">{result}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {game.homeTeam} vs {game.awayTeam}
+                          </p>
+                        </div>
+                        {onEditGame && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onEditGame(game)}
+                            className="ml-2"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold">{result}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {game.homeTeam} vs {game.awayTeam}
-                      </p>
-                    </div>
-                  </div>
                   
                   {game.events.length > 0 && (
                     <div className="space-y-2">

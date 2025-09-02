@@ -9,8 +9,10 @@ import { PlayerCard } from "@/components/PlayerCard";
 import { GameForm } from "@/components/GameForm";
 import { StatsTable } from "@/components/StatsTable";
 import { GamesList } from "@/components/GamesList";
+import { EditGameDialog } from "@/components/EditGameDialog";
 import { AuthForm } from "@/components/AuthForm";
 import { TeamDraft } from "@/components/TeamDraft";
+import { Game } from "@/types/football";
 import { Users, Calendar, Trophy, Activity, Shield, Download, Shuffle, LogOut, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { exportStatsToExcel } from "@/utils/excelExport";
@@ -26,12 +28,14 @@ const Index = () => {
     removePlayer,
     updatePlayer,
     addGame,
+    updateGame,
     getPlayerStats,
     saveDraftedTeams,
     clearDraftedTeams,
     resetAllData
   } = useFootballData();
   const { toast } = useToast();
+  const [editingGame, setEditingGame] = useState<Game | null>(null);
 
   // Show auth form if not authenticated
   if (authLoading) {
@@ -94,6 +98,22 @@ const Index = () => {
       toast({
         title: "Erro ao registrar jogo",
         description: "Ocorreu um erro ao registrar o jogo. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateGame = async (gameId: string, gameData: any) => {
+    try {
+      await updateGame(gameId, gameData);
+      toast({
+        title: "Jogo atualizado!",
+        description: `Partida ${gameData.homeTeam} vs ${gameData.awayTeam} foi atualizada.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao atualizar jogo",
+        description: "Ocorreu um erro ao atualizar o jogo. Tente novamente.",
         variant: "destructive",
       });
     }
@@ -306,9 +326,18 @@ const Index = () => {
           </TabsContent>
 
           <TabsContent value="history" className="space-y-6">
-            <GamesList games={games} />
+            <GamesList games={games} onEditGame={setEditingGame} />
           </TabsContent>
         </Tabs>
+
+        {/* Edit Game Dialog */}
+        <EditGameDialog
+          game={editingGame}
+          players={players}
+          draftedTeams={draftedTeams}
+          onUpdateGame={handleUpdateGame}
+          onClose={() => setEditingGame(null)}
+        />
       </div>
     </div>
   );
