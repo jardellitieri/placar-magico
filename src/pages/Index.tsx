@@ -1,34 +1,35 @@
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
+import { Users, Calendar, Shuffle, Trophy, Plus, Download, RotateCcw, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useFootballData } from "@/hooks/useFootballData";
-import { useAuth } from "@/hooks/useAuth";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AddPlayerForm } from "@/components/AddPlayerForm";
 import { PlayerCard } from "@/components/PlayerCard";
-import { GameForm } from "@/components/GameForm";
-import { StatsTable } from "@/components/StatsTable";
-import { GamesList } from "@/components/GamesList";
-import { EditGameDialog } from "@/components/EditGameDialog";
-import { AuthForm } from "@/components/AuthForm";
 import { TeamDraft } from "@/components/TeamDraft";
-import { Game } from "@/types/football";
-import { Users, Calendar, Trophy, Activity, Shield, Download, Shuffle, LogOut, RefreshCw } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { GameForm } from "@/components/GameForm";
+import { GamesList } from "@/components/GamesList";
+import { StatsTable } from "@/components/StatsTable";
+import { useFootballData } from "@/hooks/useFootballData";
 import { exportStatsToExcel } from "@/utils/excelExport";
+import { GoalkeeperRanking } from "@/components/GoalkeeperRanking";
+import { EditGameDialog } from "@/components/EditGameDialog";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
+import { AuthForm } from "@/components/AuthForm";
+import { Game } from "@/types/football";
 
 const Index = () => {
-  const { user, loading: authLoading, signOut } = useAuth();
-  const {
-    players,
-    games,
-    draftedTeams,
-    loading,
+  const { 
+    players, 
+    games, 
+    draftedTeams, 
+    loading: dataLoading,
     addPlayer,
     removePlayer,
     updatePlayer,
     addGame,
     updateGame,
+    getGoalkeeperStats,
     getPlayerStats,
     saveDraftedTeams,
     clearDraftedTeams,
@@ -37,13 +38,15 @@ const Index = () => {
   const { toast } = useToast();
   const [editingGame, setEditingGame] = useState<Game | null>(null);
 
+  const { user, signOut, loading: authLoading } = useAuth();
+
   // Show auth form if not authenticated
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-lg text-muted-foreground">Carregando...</p>
+          <p className="text-muted-foreground">Carregando...</p>
         </div>
       </div>
     );
@@ -53,9 +56,9 @@ const Index = () => {
     return <AuthForm onAuthSuccess={() => window.location.reload()} />;
   }
 
-  const handleAddPlayer = async (playerData: { name: string; position: string; level: 1 | 2 }) => {
+  const handleAddPlayer = async (playerData: { name: string; position: string; level: 1 | 2; goalsConceded?: number }) => {
     try {
-      await addPlayer(playerData);
+      await addPlayer({ ...playerData, goalsConceded: 0 });
       toast({
         title: "Jogador adicionado!",
         description: `${playerData.name} foi adicionado ao elenco.`,
@@ -70,13 +73,11 @@ const Index = () => {
   };
 
   const handleRemovePlayer = async (playerId: string) => {
-    const player = players.find(p => p.id === playerId);
     try {
       await removePlayer(playerId);
       toast({
-        title: "Jogador removido",
-        description: `${player?.name} foi removido do elenco.`,
-        variant: "destructive",
+        title: "Jogador removido!",
+        description: "O jogador foi removido do elenco.",
       });
     } catch (error) {
       toast({
@@ -87,12 +88,19 @@ const Index = () => {
     }
   };
 
-  const handleAddGame = async (gameData: any) => {
+  const handleAddGame = async (gameData: {
+    date: string;
+    homeTeam: string;
+    awayTeam: string;
+    homeGoals: number;
+    awayGoals: number;
+    events: any[];
+  }) => {
     try {
       await addGame(gameData);
       toast({
         title: "Jogo registrado!",
-        description: `Partida ${gameData.homeTeam} vs ${gameData.awayTeam} foi registrada.`,
+        description: "O jogo foi registrado com sucesso.",
       });
     } catch (error) {
       toast({
@@ -103,17 +111,36 @@ const Index = () => {
     }
   };
 
-  const handleUpdateGame = async (gameId: string, gameData: any) => {
+  const handleUpdateGame = async (gameId: string, updatedGame: any) => {
     try {
-      await updateGame(gameId, gameData);
+      await updateGame(gameId, updatedGame);
       toast({
         title: "Jogo atualizado!",
-        description: `Partida ${gameData.homeTeam} vs ${gameData.awayTeam} foi atualizada.`,
+        description: "O jogo foi atualizado com sucesso.",
       });
+      setEditingGame(null);
     } catch (error) {
       toast({
         title: "Erro ao atualizar jogo",
         description: "Ocorreu um erro ao atualizar o jogo. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const playerStats = getPlayerStats();
+
+  const handleClearTeams = async () => {
+    try {
+      await clearDraftedTeams();
+      toast({
+        title: "Times limpos!",
+        description: "Todos os times sorteados foram removidos.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao limpar times",
+        description: "Ocorreu um erro ao limpar os times. Tente novamente.",
         variant: "destructive",
       });
     }
@@ -143,25 +170,12 @@ const Index = () => {
     }
   };
 
-  const playerStats = getPlayerStats();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-field-light to-background p-6 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-lg text-field">Carregando dados...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-field-light to-background">
-      <div className="container mx-auto p-4 max-w-7xl">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-accent/20">
+      <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="text-center flex-1">
+        <div className="flex items-center justify-between mb-8">
+          <div>
             <h1 className="text-4xl font-bold text-field mb-2">⚽ Controle - PPFC</h1>
             <p className="text-lg text-muted-foreground">
               Gerencie jogadores, registre jogos e acompanhe estatísticas
@@ -184,30 +198,27 @@ const Index = () => {
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <Users className="h-8 w-8 mx-auto mb-2 text-primary" />
+              <Users className="h-8 w-8 mx-auto mb-2 text-blue-500" />
               <p className="text-2xl font-bold">{players.length}</p>
               <p className="text-sm text-muted-foreground">Jogadores</p>
             </CardContent>
           </Card>
-          
           <Card>
             <CardContent className="p-4 text-center">
-              <Calendar className="h-8 w-8 mx-auto mb-2 text-primary" />
+              <Calendar className="h-8 w-8 mx-auto mb-2 text-green-500" />
               <p className="text-2xl font-bold">{games.length}</p>
               <p className="text-sm text-muted-foreground">Jogos</p>
             </CardContent>
           </Card>
-          
-           <Card>
-             <CardContent className="p-4 text-center">
-               <Trophy className="h-8 w-8 mx-auto mb-2 text-goal" />
-                <p className="text-2xl font-bold">
-                  {games.reduce((total, game) => total + game.homeGoals + game.awayGoals, 0)}
-                </p>
-               <p className="text-sm text-muted-foreground">Gols Total</p>
-             </CardContent>
-           </Card>
-          
+          <Card>
+            <CardContent className="p-4 text-center">
+              <Trophy className="h-8 w-8 mx-auto mb-2 text-yellow-500" />
+              <p className="text-2xl font-bold">
+                {playerStats.length > 0 ? playerStats[0]?.totalPoints || 0 : 0}
+              </p>
+              <p className="text-sm text-muted-foreground">Maior Pontuação</p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Main Content */}
@@ -229,104 +240,83 @@ const Index = () => {
               <Trophy className="h-4 w-4" />
               Estatísticas
             </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-2">
-              <Activity className="h-4 w-4" />
-              Histórico
+            <TabsTrigger value="goalkeepers" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Goleiros
             </TabsTrigger>
           </TabsList>
 
-
           <TabsContent value="players" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-1">
-                <AddPlayerForm onAddPlayer={handleAddPlayer} />
+            <AddPlayerForm onAddPlayer={handleAddPlayer} />
+            
+            {dataLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Carregando jogadores...</p>
               </div>
-              
-               <div className="lg:col-span-2">
-                {loading ? (
-                  <Card>
-                    <CardContent className="p-8 text-center">
-                      <p className="text-muted-foreground">Carregando jogadores...</p>
-                    </CardContent>
-                  </Card>
-                ) : players?.length === 0 ? (
-                  <Card>
-                    <CardContent className="p-8 text-center">
-                      <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <h3 className="text-lg font-semibold mb-2">Nenhum jogador cadastrado</h3>
-                      <p className="text-muted-foreground">
-                        Comece adicionando jogadores ao seu elenco
-                      </p>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <PlayerCard 
-                    players={players || []} 
-                    onRemovePlayer={handleRemovePlayer}
-                    onUpdatePlayer={updatePlayer}
-                  />
-                )}
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="draft" className="space-y-6">
-            {players.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">Cadastre jogadores primeiro</h3>
-                  <p className="text-muted-foreground">
-                    Você precisa ter jogadores cadastrados para sortear times
-                  </p>
-                </CardContent>
-              </Card>
             ) : (
-              <TeamDraft 
-                players={players} 
-                draftedTeams={draftedTeams}
-                onSaveDraftedTeams={saveDraftedTeams}
-                onClearDraftedTeams={clearDraftedTeams}
+              <PlayerCard
+                players={players}
+                onRemovePlayer={handleRemovePlayer}
+                onUpdatePlayer={updatePlayer}
               />
             )}
           </TabsContent>
-
-          <TabsContent value="games" className="space-y-6">
-            {draftedTeams.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-semibold mb-2">Sorteie times primeiro</h3>
-                  <p className="text-muted-foreground">
-                    Você precisa sortear times antes de registrar jogos
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <GameForm players={players} draftedTeams={draftedTeams} onAddGame={handleAddGame} />
-            )}
-          </TabsContent>
-
-          <TabsContent value="stats" className="space-y-6">
-            <div className="flex justify-end gap-2 mb-4">
-              <Button 
-                onClick={handleResetAllData} 
-                variant="destructive" 
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Zerar Estatísticas
-              </Button>
-              <Button onClick={handleExportToExcel} className="flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Exportar para Excel
+          
+          <TabsContent value="draft" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Sorteio de Times</h2>
+              <Button variant="outline" onClick={handleClearTeams}>
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Limpar Times
               </Button>
             </div>
-            <StatsTable playerStats={playerStats} draftedTeams={draftedTeams} players={players} games={games} />
+            <TeamDraft 
+              players={players} 
+              draftedTeams={draftedTeams}
+              onSaveDraftedTeams={saveDraftedTeams}
+              onClearDraftedTeams={handleClearTeams}
+            />
           </TabsContent>
-
-          <TabsContent value="history" className="space-y-6">
-            <GamesList games={games} onEditGame={setEditingGame} />
+          
+          <TabsContent value="games" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <GameForm 
+                players={players} 
+                draftedTeams={draftedTeams} 
+                onAddGame={handleAddGame}
+              />
+              <GamesList 
+                games={games} 
+                onEditGame={setEditingGame}
+              />
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="stats" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold">Estatísticas dos Jogadores</h2>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handleExportToExcel}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Exportar Excel
+                </Button>
+                <Button variant="destructive" onClick={handleResetAllData}>
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Zerar Dados
+                </Button>
+              </div>
+            </div>
+            <StatsTable 
+              playerStats={getPlayerStats()}
+              draftedTeams={draftedTeams}
+              players={players}
+              games={games}
+            />
+          </TabsContent>
+          
+          <TabsContent value="goalkeepers" className="space-y-6">
+            <GoalkeeperRanking goalkeepers={getGoalkeeperStats()} />
           </TabsContent>
         </Tabs>
 

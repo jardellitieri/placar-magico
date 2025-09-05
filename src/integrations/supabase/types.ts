@@ -147,6 +147,7 @@ export type Database = {
           created_at: string
           games_played: number
           goals: number
+          goals_conceded: number
           id: string
           level: number
           name: string
@@ -160,6 +161,7 @@ export type Database = {
           created_at?: string
           games_played?: number
           goals?: number
+          goals_conceded?: number
           id?: string
           level: number
           name: string
@@ -173,6 +175,7 @@ export type Database = {
           created_at?: string
           games_played?: number
           goals?: number
+          goals_conceded?: number
           id?: string
           level?: number
           name?: string

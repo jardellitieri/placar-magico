@@ -13,6 +13,7 @@ export interface Player {
   goals: number;
   assists: number;
   gamesPlayed: number;
+  goalsConceded: number;
   availableForDraft: boolean;
 }
 
@@ -39,5 +40,6 @@ export interface PlayerStats {
   goals: number;
   assists: number;
   gamesPlayed: number;
+  goalsConceded: number;
   totalPoints: number;
 }

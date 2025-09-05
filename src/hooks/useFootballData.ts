@@ -65,6 +65,7 @@ export const useFootballData = () => {
           goals: player.goals,
           assists: player.assists,
           gamesPlayed: player.games_played,
+          goalsConceded: player.goals_conceded,
           availableForDraft: player.available_for_draft ?? true
         }));
         setPlayers(formattedPlayers);
@@ -151,6 +152,7 @@ export const useFootballData = () => {
         goals: data.goals,
         assists: data.assists,
         gamesPlayed: data.games_played,
+        goalsConceded: data.goals_conceded,
         availableForDraft: data.available_for_draft ?? true
       };
 
@@ -230,12 +232,12 @@ export const useFootballData = () => {
   };
 
   const updatePlayerStats = async (game: Omit<Game, 'id'>) => {
-    const playerUpdates: { [key: string]: { goals: number; assists: number } } = {};
+    const playerUpdates: { [key: string]: { goals: number; assists: number; goalsConceded: number } } = {};
     
     // Count events for each player (excluding own goals from goal count)
     game.events.forEach(event => {
       if (!playerUpdates[event.playerId]) {
-        playerUpdates[event.playerId] = { goals: 0, assists: 0 };
+        playerUpdates[event.playerId] = { goals: 0, assists: 0, goalsConceded: 0 };
       }
       
       // Only count regular goals, not own goals or goals conceded
@@ -243,8 +245,10 @@ export const useFootballData = () => {
         playerUpdates[event.playerId].goals++;
       } else if (event.type === 'assist') {
         playerUpdates[event.playerId].assists++;
+      } else if (event.type === 'goal_conceded') {
+        playerUpdates[event.playerId].goalsConceded++;
       }
-      // own_goal and goal_conceded are not counted in player statistics
+      // own_goal is not counted in player statistics
     });
 
     // Get all players who participated
@@ -258,6 +262,7 @@ export const useFootballData = () => {
       if (updates || participated) {
         const newGoals = player.goals + (updates?.goals || 0);
         const newAssists = player.assists + (updates?.assists || 0);
+        const newGoalsConceded = player.goalsConceded + (updates?.goalsConceded || 0);
         const newGamesPlayed = player.gamesPlayed + (participated ? 1 : 0);
 
         await supabase
@@ -265,6 +270,7 @@ export const useFootballData = () => {
           .update({
             goals: newGoals,
             assists: newAssists,
+            goals_conceded: newGoalsConceded,
             games_played: newGamesPlayed
           })
           .eq('id', player.id);
@@ -280,9 +286,25 @@ export const useFootballData = () => {
         goals: player.goals,
         assists: player.assists,
         gamesPlayed: player.gamesPlayed,
+        goalsConceded: player.goalsConceded,
         totalPoints: player.goals + player.assists
       }))
       .sort((a, b) => b.totalPoints - a.totalPoints);
+  };
+
+  const getGoalkeeperStats = (): PlayerStats[] => {
+    return players
+      .filter(player => player.position === 'Goleiro')
+      .map(player => ({
+        playerId: player.id,
+        name: player.name,
+        goals: player.goals,
+        assists: player.assists,
+        gamesPlayed: player.gamesPlayed,
+        goalsConceded: player.goalsConceded,
+        totalPoints: player.goals + player.assists
+      }))
+      .sort((a, b) => a.goalsConceded - b.goalsConceded);
   };
 
   const saveDraftedTeams = async (teams: DraftedTeam[]) => {
@@ -409,12 +431,12 @@ export const useFootballData = () => {
   };
 
   const revertPlayerStats = async (game: Game) => {
-    const playerUpdates: { [key: string]: { goals: number; assists: number } } = {};
+    const playerUpdates: { [key: string]: { goals: number; assists: number; goalsConceded: number } } = {};
     
     // Count events for each player to subtract (excluding own goals from goal count)
     game.events.forEach(event => {
       if (!playerUpdates[event.playerId]) {
-        playerUpdates[event.playerId] = { goals: 0, assists: 0 };
+        playerUpdates[event.playerId] = { goals: 0, assists: 0, goalsConceded: 0 };
       }
       
       // Only count regular goals, not own goals or goals conceded
@@ -422,8 +444,10 @@ export const useFootballData = () => {
         playerUpdates[event.playerId].goals++;
       } else if (event.type === 'assist') {
         playerUpdates[event.playerId].assists++;
+      } else if (event.type === 'goal_conceded') {
+        playerUpdates[event.playerId].goalsConceded++;
       }
-      // own_goal and goal_conceded are not counted in player statistics
+      // own_goal is not counted in player statistics
     });
 
     // Get all players who participated
@@ -437,6 +461,7 @@ export const useFootballData = () => {
       if (updates || participated) {
         const newGoals = Math.max(0, player.goals - (updates?.goals || 0));
         const newAssists = Math.max(0, player.assists - (updates?.assists || 0));
+        const newGoalsConceded = Math.max(0, player.goalsConceded - (updates?.goalsConceded || 0));
         const newGamesPlayed = Math.max(0, player.gamesPlayed - (participated ? 1 : 0));
 
         await supabase
@@ -444,6 +469,7 @@ export const useFootballData = () => {
           .update({
             goals: newGoals,
             assists: newAssists,
+            goals_conceded: newGoalsConceded,
             games_played: newGamesPlayed
           })
           .eq('id', player.id);
@@ -519,6 +545,7 @@ export const useFootballData = () => {
     addGame,
     updateGame,
     getPlayerStats,
+    getGoalkeeperStats,
     saveDraftedTeams,
     clearDraftedTeams,
     resetAllData
