@@ -19,7 +19,7 @@ export interface Player {
 export interface GameEvent {
   playerId: string;
   playerName: string;
-  type: 'goal' | 'assist';
+  type: 'goal' | 'assist' | 'own_goal' | 'goal_conceded';
   minute: number;
 }
 

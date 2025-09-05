@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Player, GameEvent, Game } from "@/types/football";
 import { DraftedTeam } from "@/hooks/useFootballData";
-import { Plus, Target, Users, Trash2 } from "lucide-react";
+import { Plus, Target, Users, Trash2, Shield, SkipBack } from "lucide-react";
 
 interface EditGameDialogProps {
   game: Game | null;
@@ -36,7 +36,7 @@ export const EditGameDialog = ({
   const [awayTeam, setAwayTeam] = useState("");
   const [events, setEvents] = useState<GameEvent[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState("");
-  const [eventType, setEventType] = useState<"goal" | "assist">("goal");
+  const [eventType, setEventType] = useState<"goal" | "assist" | "own_goal" | "goal_conceded">("goal");
 
   // Populate form with game data when game changes
   useEffect(() => {
@@ -68,13 +68,19 @@ export const EditGameDialog = ({
   };
 
   // Calcular placar automaticamente baseado nos eventos
-  const homeGoals = events.filter(event => 
-    event.type === 'goal' && findPlayerTeam(event.playerId) === homeTeam
-  ).length;
+  const homeGoals = events.filter(event => {
+    const playerTeam = findPlayerTeam(event.playerId);
+    return (event.type === 'goal' && playerTeam === homeTeam) ||
+           (event.type === 'own_goal' && playerTeam === awayTeam) ||
+           (event.type === 'goal_conceded' && playerTeam === homeTeam);
+  }).length;
   
-  const awayGoals = events.filter(event => 
-    event.type === 'goal' && findPlayerTeam(event.playerId) === awayTeam
-  ).length;
+  const awayGoals = events.filter(event => {
+    const playerTeam = findPlayerTeam(event.playerId);
+    return (event.type === 'goal' && playerTeam === awayTeam) ||
+           (event.type === 'own_goal' && playerTeam === homeTeam) ||
+           (event.type === 'goal_conceded' && playerTeam === awayTeam);
+  }).length;
 
   const addEvent = () => {
     if (selectedPlayer) {
@@ -206,13 +212,15 @@ export const EditGameDialog = ({
                 </SelectContent>
               </Select>
               
-              <Select value={eventType} onValueChange={(value: "goal" | "assist") => setEventType(value)}>
+              <Select value={eventType} onValueChange={(value: "goal" | "assist" | "own_goal" | "goal_conceded") => setEventType(value)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="goal">Gol</SelectItem>
                   <SelectItem value="assist">Assistência</SelectItem>
+                  <SelectItem value="own_goal">Gol Contra</SelectItem>
+                  <SelectItem value="goal_conceded">Gol Sofrido</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -228,13 +236,24 @@ export const EditGameDialog = ({
                     <div className="flex items-center gap-2">
                       {event.type === 'goal' ? (
                         <Target className="h-4 w-4 text-goal" />
-                      ) : (
+                      ) : event.type === 'assist' ? (
                         <Users className="h-4 w-4 text-assist" />
+                      ) : event.type === 'own_goal' ? (
+                        <SkipBack className="h-4 w-4 text-destructive" />
+                      ) : (
+                        <Shield className="h-4 w-4 text-destructive" />
                       )}
                       <span>{event.playerName}</span>
                       <span className="text-muted-foreground">({findPlayerTeam(event.playerId)})</span>
-                      <Badge variant={event.type === 'goal' ? 'default' : 'secondary'}>
-                        {event.type === 'goal' ? 'Gol' : 'Assistência'}
+                      <Badge variant={
+                        event.type === 'goal' ? 'default' : 
+                        event.type === 'assist' ? 'secondary' : 
+                        'destructive'
+                      }>
+                        {event.type === 'goal' ? 'Gol' : 
+                         event.type === 'assist' ? 'Assistência' : 
+                         event.type === 'own_goal' ? 'Gol Contra' : 
+                         'Gol Sofrido'}
                       </Badge>
                     </div>
                     <Button
