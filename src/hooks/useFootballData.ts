@@ -232,17 +232,19 @@ export const useFootballData = () => {
   const updatePlayerStats = async (game: Omit<Game, 'id'>) => {
     const playerUpdates: { [key: string]: { goals: number; assists: number } } = {};
     
-    // Count events for each player
+    // Count events for each player (excluding own goals from goal count)
     game.events.forEach(event => {
       if (!playerUpdates[event.playerId]) {
         playerUpdates[event.playerId] = { goals: 0, assists: 0 };
       }
       
+      // Only count regular goals, not own goals or goals conceded
       if (event.type === 'goal') {
         playerUpdates[event.playerId].goals++;
       } else if (event.type === 'assist') {
         playerUpdates[event.playerId].assists++;
       }
+      // own_goal and goal_conceded are not counted in player statistics
     });
 
     // Get all players who participated
@@ -409,17 +411,19 @@ export const useFootballData = () => {
   const revertPlayerStats = async (game: Game) => {
     const playerUpdates: { [key: string]: { goals: number; assists: number } } = {};
     
-    // Count events for each player to subtract
+    // Count events for each player to subtract (excluding own goals from goal count)
     game.events.forEach(event => {
       if (!playerUpdates[event.playerId]) {
         playerUpdates[event.playerId] = { goals: 0, assists: 0 };
       }
       
+      // Only count regular goals, not own goals or goals conceded
       if (event.type === 'goal') {
         playerUpdates[event.playerId].goals++;
       } else if (event.type === 'assist') {
         playerUpdates[event.playerId].assists++;
       }
+      // own_goal and goal_conceded are not counted in player statistics
     });
 
     // Get all players who participated
