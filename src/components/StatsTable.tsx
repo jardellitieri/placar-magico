@@ -239,7 +239,29 @@ export const StatsTable = ({ playerStats, draftedTeams, players, games }: StatsT
               </SelectContent>
             </Select>
           </div>
-          <p className="text-sm text-muted-foreground">
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 p-4 bg-muted/50 rounded-lg">
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">Total de Gols</p>
+              <p className="text-2xl font-bold text-goal">
+                {dateStats.reduce((total, player) => total + player.goals, 0)}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">Total de Assistências</p>
+              <p className="text-2xl font-bold text-assist">
+                {dateStats.reduce((total, player) => total + player.assists, 0)}
+              </p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">Jogos Analisados</p>
+              <p className="text-2xl font-bold">
+                {filteredGames.length}
+              </p>
+            </div>
+          </div>
+          
+          <p className="text-sm text-muted-foreground mt-4">
             {selectedDate === "all" 
               ? "Mostrando estatísticas de todas as datas" 
               : `Mostrando estatísticas do dia ${new Date(selectedDate).toLocaleDateString('pt-BR')}`
