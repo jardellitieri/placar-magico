@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserPlus } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { UserPlus, User, Target, Star } from "lucide-react";
 import { toast } from "sonner";
 
 interface AddPlayerFormProps {
@@ -11,11 +12,11 @@ interface AddPlayerFormProps {
 }
 
 const positions = [
-  "Goleiro",
-  "Zagueiro",
-  "Meio-campo",
-  "Meia-atacante",
-  "Pivo"
+  { value: "Goleiro", icon: Target, color: "text-primary" },
+  { value: "Zagueiro", icon: User, color: "text-muted-foreground" },
+  { value: "Meio-campo", icon: User, color: "text-muted-foreground" },
+  { value: "Meia-atacante", icon: User, color: "text-muted-foreground" },
+  { value: "Pivo", icon: Target, color: "text-accent" }
 ];
 
 export const AddPlayerForm = ({ onAddPlayer }: AddPlayerFormProps) => {
@@ -39,55 +40,104 @@ export const AddPlayerForm = ({ onAddPlayer }: AddPlayerFormProps) => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <UserPlus className="h-5 w-5" />
-          Adicionar Jogador
+    <Card className="bg-gradient-to-br from-card to-card/50 border-border/50 shadow-xl">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-3 text-xl">
+          <div className="p-2 rounded-full bg-primary/10">
+            <UserPlus className="h-6 w-6 text-primary" />
+          </div>
+          Adicionar Novo Jogador
         </CardTitle>
       </CardHeader>
       
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
+      <CardContent className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Nome do Jogador */}
+          <div className="space-y-2">
+            <Label htmlFor="playerName" className="text-sm font-medium flex items-center gap-2">
+              <User className="h-4 w-4 text-muted-foreground" />
+              Nome do Jogador
+            </Label>
             <Input
-              placeholder="Nome do jogador"
+              id="playerName"
+              placeholder="Digite o nome completo"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20"
             />
           </div>
           
-          <div>
+          {/* Posição */}
+          <div className="space-y-2">
+            <Label htmlFor="position" className="text-sm font-medium flex items-center gap-2">
+              <Target className="h-4 w-4 text-muted-foreground" />
+              Posição em Campo
+            </Label>
             <Select value={position} onValueChange={setPosition} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a posição" />
+              <SelectTrigger className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20">
+                <SelectValue placeholder="Escolha a posição do jogador" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-popover border-border/50">
                 {positions.map((pos) => (
-                  <SelectItem key={pos} value={pos}>
-                    {pos}
+                  <SelectItem 
+                    key={pos.value} 
+                    value={pos.value}
+                    className="cursor-pointer hover:bg-accent/50 transition-colors duration-150"
+                  >
+                    <div className="flex items-center gap-2">
+                      <pos.icon className={`h-4 w-4 ${pos.color}`} />
+                      {pos.value}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div>
+          {/* Nível de Habilidade */}
+          <div className="space-y-2">
+            <Label htmlFor="level" className="text-sm font-medium flex items-center gap-2">
+              <Star className="h-4 w-4 text-muted-foreground" />
+              Nível de Habilidade
+            </Label>
             <Select value={level.toString()} onValueChange={(value) => setLevel(Number(value) as 1 | 2)} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o nível" />
+              <SelectTrigger className="h-11 transition-all duration-200 focus:ring-2 focus:ring-primary/20">
+                <SelectValue placeholder="Selecione o nível de habilidade" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">Nível 1</SelectItem>
-                <SelectItem value="2">Nível 2</SelectItem>
+              <SelectContent className="bg-popover border-border/50">
+                <SelectItem 
+                  value="1" 
+                  className="cursor-pointer hover:bg-accent/50 transition-colors duration-150"
+                >
+                  <div className="flex items-center gap-2">
+                    <Star className="h-4 w-4 text-yellow-500" />
+                    Nível 1 - Iniciante
+                  </div>
+                </SelectItem>
+                <SelectItem 
+                  value="2"
+                  className="cursor-pointer hover:bg-accent/50 transition-colors duration-150"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="flex">
+                      <Star className="h-4 w-4 text-yellow-500" />
+                      <Star className="h-4 w-4 text-yellow-500" />
+                    </div>
+                    Nível 2 - Avançado
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
           
-          <Button type="submit" className="w-full">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Adicionar Jogador
+          {/* Botão de Submissão */}
+          <Button 
+            type="submit" 
+            className="w-full h-12 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+          >
+            <UserPlus className="w-5 h-5 mr-2" />
+            Adicionar Jogador ao Time
           </Button>
         </form>
       </CardContent>
