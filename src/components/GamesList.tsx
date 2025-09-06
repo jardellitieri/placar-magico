@@ -1,8 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Game } from "@/types/football";
-import { Calendar, Target, Users, Edit } from "lucide-react";
+import { Calendar, Target, Users, Edit, SortDesc, SortAsc } from "lucide-react";
+import { useState } from "react";
 
 interface GamesListProps {
   games: Game[];
@@ -10,15 +12,44 @@ interface GamesListProps {
 }
 
 export const GamesList = ({ games, onEditGame }: GamesListProps) => {
-  const sortedGames = [...games].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
+  
+  const sortedGames = [...games].sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    return sortOrder === 'newest' ? dateB - dateA : dateA - dateB;
+  });
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Histórico de Jogos
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Histórico de Jogos
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Select value={sortOrder} onValueChange={(value: 'newest' | 'oldest') => setSortOrder(value)}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">
+                  <div className="flex items-center gap-2">
+                    <SortDesc className="h-4 w-4" />
+                    Mais recentes
+                  </div>
+                </SelectItem>
+                <SelectItem value="oldest">
+                  <div className="flex items-center gap-2">
+                    <SortAsc className="h-4 w-4" />
+                    Mais antigos
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </CardHeader>
       
       <CardContent>
