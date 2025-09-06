@@ -85,17 +85,23 @@ export const StatsTable = ({ playerStats, draftedTeams, players, games }: StatsT
 
   const dateStats = getStatsForDate(filteredGames);
 
-  // Ranking de gols (por data selecionada)
-  const goalRanking = dateStats
+  // Ranking de gols (por data selecionada) - mostra todos com mesma pontuação
+  const goalRankingData = dateStats
     .filter(p => p.goals > 0)
-    .sort((a, b) => b.goals - a.goals)
-    .slice(0, 10);
+    .sort((a, b) => b.goals - a.goals);
+  
+  const goalRanking = goalRankingData.length > 0 
+    ? goalRankingData.filter(p => p.goals >= goalRankingData[0].goals || goalRankingData.findIndex(player => player.goals === p.goals) < 10)
+    : [];
 
-  // Ranking de assistências (por data selecionada)
-  const assistRanking = dateStats
+  // Ranking de assistências (por data selecionada) - mostra todos com mesma pontuação
+  const assistRankingData = dateStats
     .filter(p => p.assists > 0)
-    .sort((a, b) => b.assists - a.assists)
-    .slice(0, 10);
+    .sort((a, b) => b.assists - a.assists);
+    
+  const assistRanking = assistRankingData.length > 0 
+    ? assistRankingData.filter(p => p.assists >= assistRankingData[0].assists || assistRankingData.findIndex(player => player.assists === p.assists) < 10)
+    : [];
 
   // Calcular gols sofridos por goleiro (por data selecionada)
   const goalkeepers = players.filter(p => p.position === 'Goleiro');
@@ -259,19 +265,22 @@ export const StatsTable = ({ playerStats, draftedTeams, players, games }: StatsT
               </p>
             ) : (
               <div className="space-y-2">
-                {goalRanking.map((player, index) => (
-                  <div key={player.playerId} className="flex items-center justify-between p-2 rounded border">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium w-6">
-                        {index + 1}º
-                      </span>
-                      <span className="font-medium">{player.name}</span>
+                {goalRanking.map((player, index) => {
+                  const position = goalRankingData.findIndex(p => p.goals === player.goals) + 1;
+                  return (
+                    <div key={player.playerId} className="flex items-center justify-between p-2 rounded border">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium w-6">
+                          {position}º
+                        </span>
+                        <span className="font-medium">{player.name}</span>
+                      </div>
+                      <Badge className="bg-goal text-goal-foreground">
+                        {player.goals} gols
+                      </Badge>
                     </div>
-                    <Badge className="bg-goal text-goal-foreground">
-                      {player.goals} gols
-                    </Badge>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -292,19 +301,22 @@ export const StatsTable = ({ playerStats, draftedTeams, players, games }: StatsT
               </p>
             ) : (
               <div className="space-y-2">
-                {assistRanking.map((player, index) => (
-                  <div key={player.playerId} className="flex items-center justify-between p-2 rounded border">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium w-6">
-                        {index + 1}º
-                      </span>
-                      <span className="font-medium">{player.name}</span>
+                {assistRanking.map((player, index) => {
+                  const position = assistRankingData.findIndex(p => p.assists === player.assists) + 1;
+                  return (
+                    <div key={player.playerId} className="flex items-center justify-between p-2 rounded border">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium w-6">
+                          {position}º
+                        </span>
+                        <span className="font-medium">{player.name}</span>
+                      </div>
+                      <Badge className="bg-assist text-assist-foreground">
+                        {player.assists} assists
+                      </Badge>
                     </div>
-                    <Badge className="bg-assist text-assist-foreground">
-                      {player.assists} assists
-                    </Badge>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
