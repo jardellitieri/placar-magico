@@ -59,11 +59,6 @@ export const GoalkeeperRanking = ({ goalkeepers }: GoalkeeperRankingProps) => {
                   {goalkeeper.goals} gols
                 </Badge>
               )}
-              {goalkeeper.assists > 0 && (
-                <Badge variant="secondary" className="text-xs">
-                  {goalkeeper.assists} assistências
-                </Badge>
-              )}
             </div>
           </div>
         ))}
