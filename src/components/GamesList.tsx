@@ -110,15 +110,26 @@ export const GamesList = ({ games, onEditGame }: GamesListProps) => {
                           <div key={index} className="flex items-center gap-2 text-sm">
                             {event.type === 'goal' ? (
                               <Target className="h-4 w-4 text-goal" />
-                            ) : (
+                            ) : event.type === 'assist' ? (
                               <Users className="h-4 w-4 text-assist" />
+                            ) : event.type === 'own_goal' ? (
+                              <Target className="h-4 w-4 text-destructive" />
+                            ) : (
+                              <Target className="h-4 w-4 text-destructive" />
                             )}
                             <span>{event.playerName}</span>
                             <Badge 
-                              variant={event.type === 'goal' ? 'default' : 'secondary'}
+                              variant={
+                                event.type === 'goal' ? 'default' : 
+                                event.type === 'assist' ? 'secondary' : 
+                                'destructive'
+                              }
                               className="text-xs"
                             >
-                              {event.type === 'goal' ? 'Gol' : 'Assist'}
+                              {event.type === 'goal' ? 'Gol' : 
+                               event.type === 'assist' ? 'Assistência' : 
+                               event.type === 'own_goal' ? 'Gol Contra' : 
+                               'Gol Sofrido'}
                             </Badge>
                             
                           </div>
