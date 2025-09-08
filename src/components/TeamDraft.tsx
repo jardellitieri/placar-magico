@@ -521,7 +521,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
           
           <div className="text-center mb-4">
             <Badge variant="outline" className="text-sm">
-              Formação: 1 Goleiro + 2 Zagueiros + 1 Meio-campo + 2 Meia-atacantes + 1 Pivô = 7 jogadores
+              Formação: 2 Zagueiros + 1 Meio-campo + 2 Meia-atacantes + 1 Pivô = 6 jogadores
             </Badge>
           </div>
           
