@@ -46,19 +46,17 @@ export const GameForm = ({ players, draftedTeams, onAddGame }: GameFormProps) =>
     return "";
   };
   
-  // Calcular placar automaticamente baseado nos eventos
+  // Calcular placar automaticamente baseado nos eventos (ignorando gols sofridos pelos goleiros)
   const homeGoals = events.filter(event => {
     const playerTeam = findPlayerTeam(event.playerId);
     return (event.type === 'goal' && playerTeam === homeTeam) ||
-           (event.type === 'own_goal' && playerTeam === awayTeam) ||
-           (event.type === 'goal_conceded' && playerTeam === homeTeam);
+           (event.type === 'own_goal' && playerTeam === awayTeam);
   }).length;
   
   const awayGoals = events.filter(event => {
     const playerTeam = findPlayerTeam(event.playerId);
     return (event.type === 'goal' && playerTeam === awayTeam) ||
-           (event.type === 'own_goal' && playerTeam === homeTeam) ||
-           (event.type === 'goal_conceded' && playerTeam === awayTeam);
+           (event.type === 'own_goal' && playerTeam === homeTeam);
   }).length;
 
   const addEvent = () => {

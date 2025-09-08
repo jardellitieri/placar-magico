@@ -294,7 +294,7 @@ export const useFootballData = () => {
 
   const getGoalkeeperStats = (): PlayerStats[] => {
     return players
-      .filter(player => player.position === 'Goleiro')
+      .filter(player => player.position === 'Goleiro' && player.availableForDraft)
       .map(player => ({
         playerId: player.id,
         name: player.name,
