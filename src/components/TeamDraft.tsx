@@ -28,9 +28,8 @@ const POSITIONS_MAP = {
   "Pivo": "pivot"
 };
 
-// Formação: 1 Goleiro, 2 Zagueiros, 1 Meio-campo, 2 Meia-atacantes, 1 Pivô = 7 jogadores
+// Formação: 2 Zagueiros + 1 Meio-campo + 2 Meia-atacantes + 1 Pivô = 6 jogadores
 const TEAM_FORMATION = {
-  goalkeeper: 1,
   defender: 2,
   midfielder: 1,
   attacking_midfielder: 2,
@@ -128,25 +127,22 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
   };
 
   const generateTeams = () => {
-    const goalkeepers = getPlayersByPosition("goalkeeper");
     const defenders = getPlayersByPosition("defender");
     const midfielders = getPlayersByPosition("midfielder");
     const attackingMidfielders = getPlayersByPosition("attacking_midfielder");
     const pivots = getPlayersByPosition("pivot");
 
     // Verificar se há jogadores suficientes para formar pelo menos 1 time
-    if (goalkeepers.length < TEAM_FORMATION.goalkeeper ||
-        defenders.length < TEAM_FORMATION.defender ||
+    if (defenders.length < TEAM_FORMATION.defender ||
         midfielders.length < TEAM_FORMATION.midfielder ||
         attackingMidfielders.length < TEAM_FORMATION.attacking_midfielder ||
         pivots.length < TEAM_FORMATION.pivot) {
-      toast.error("Jogadores insuficientes! Necessário pelo menos: 1 goleiro, 2 zagueiros, 1 meio-campo, 2 meia-atacantes e 1 pivô para formar um time.");
+      toast.error("Jogadores insuficientes! Necessário pelo menos: 2 zagueiros, 1 meio-campo, 2 meia-atacantes e 1 pivô para formar um time.");
       return;
     }
 
-    // Calcular quantos times podem ser formados (7 jogadores por time)
+    // Calcular quantos times podem ser formados (6 jogadores por time)
     const maxTeams = Math.min(
-      Math.floor(goalkeepers.length / TEAM_FORMATION.goalkeeper),
       Math.floor(defenders.length / TEAM_FORMATION.defender),
       Math.floor(midfielders.length / TEAM_FORMATION.midfielder),
       Math.floor(attackingMidfielders.length / TEAM_FORMATION.attacking_midfielder),
@@ -159,7 +155,6 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
     }
 
     // Distribuir jogadores equilibradamente por nível e posição
-    const teamGoalkeepers = balanceTeamsByLevel(goalkeepers, maxTeams, TEAM_FORMATION.goalkeeper);
     const teamDefenders = balanceTeamsByLevel(defenders, maxTeams, TEAM_FORMATION.defender);
     const teamMidfielders = balanceTeamsByLevel(midfielders, maxTeams, TEAM_FORMATION.midfielder);
     const teamAttackingMidfielders = balanceTeamsByLevel(attackingMidfielders, maxTeams, TEAM_FORMATION.attacking_midfielder);
@@ -169,7 +164,6 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
     const teams: DraftedTeam[] = [];
     for (let i = 0; i < maxTeams; i++) {
       const teamPlayers = [
-        ...teamGoalkeepers[i],
         ...teamDefenders[i],
         ...teamMidfielders[i],
         ...teamAttackingMidfielders[i],
@@ -182,7 +176,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
       teams.push({
         name: `Time ${String.fromCharCode(65 + i)}`,
         players: teamPlayers,
-        goalkeepers: teamGoalkeepers[i],
+        goalkeepers: [], // Sem goleiros na formação
         defenders: teamDefenders[i],
         midfielders: teamMidfielders[i],
         forwards: [...teamAttackingMidfielders[i], ...teamPivots[i]], // Salvar tudo em forwards para compatibilidade
@@ -194,7 +188,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
     }
 
     onSaveDraftedTeams(teams).then(() => {
-      toast.success(`${maxTeams} times sorteados com sucesso! (7 jogadores por time)`);
+      toast.success(`${maxTeams} times sorteados com sucesso! (6 jogadores por time)`);
     }).catch(() => {
       toast.error("Erro ao salvar times sorteados.");
     });
@@ -209,18 +203,12 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
   };
 
   const getPlayerCountsByPosition = () => {
-    const goalkeepers = getPlayersByPosition("goalkeeper");
     const defenders = getPlayersByPosition("defender");
     const midfielders = getPlayersByPosition("midfielder");
     const attackingMidfielders = getPlayersByPosition("attacking_midfielder");
     const pivots = getPlayersByPosition("pivot");
 
     return {
-      goalkeepers: {
-        total: goalkeepers.length,
-        level1: goalkeepers.filter(p => p.level === 1).length,
-        level2: goalkeepers.filter(p => p.level === 2).length
-      },
       defenders: {
         total: defenders.length,
         level1: defenders.filter(p => p.level === 1).length,
@@ -395,12 +383,11 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
   };
 
   const getReservePlayers = () => {
-    if (draftedTeams.length === 0) return { goalkeepers: [], defenders: [], midfielders: [], attackingMidfielders: [], pivots: [] };
+    if (draftedTeams.length === 0) return { defenders: [], midfielders: [], attackingMidfielders: [], pivots: [] };
     
     const draftedPlayerIds = new Set(draftedTeams.flatMap(team => team.players.map(p => p.id)));
     
     return {
-      goalkeepers: getPlayersByPosition("goalkeeper").filter(p => !draftedPlayerIds.has(p.id)),
       defenders: getPlayersByPosition("defender").filter(p => !draftedPlayerIds.has(p.id)),
       midfielders: getPlayersByPosition("midfielder").filter(p => !draftedPlayerIds.has(p.id)),
       attackingMidfielders: getPlayersByPosition("attacking_midfielder").filter(p => !draftedPlayerIds.has(p.id)),
@@ -425,33 +412,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
-            <div className="text-center p-3 bg-muted/50 rounded-lg">
-              <p className="text-2xl font-bold text-primary">{counts.goalkeepers.total}</p>
-              <p className="text-sm font-medium mb-1">Goleiros</p>
-              <div className="flex justify-center gap-2 text-xs mb-2">
-                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                  Nível 1: {counts.goalkeepers.level1}
-                </span>
-                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                  Nível 2: {counts.goalkeepers.level2}
-                </span>
-              </div>
-              <div className="space-y-1">
-                <div className="text-xs text-left">
-                  <p className="font-medium text-foreground mb-1">Nível 1:</p>
-                  {getPlayersByPosition("goalkeeper").filter(p => p.level === 1).map(player => (
-                    <p key={player.id} className="text-xs text-foreground">{player.name}</p>
-                  ))}
-                </div>
-                <div className="text-xs text-left">
-                  <p className="font-medium text-primary mb-1">Nível 2:</p>
-                  {getPlayersByPosition("goalkeeper").filter(p => p.level === 2).map(player => (
-                    <p key={player.id} className="text-xs text-primary">{player.name}</p>
-                  ))}
-                </div>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-primary">{counts.defenders.total}</p>
               <p className="text-sm font-medium mb-1">Zagueiros</p>
@@ -763,34 +724,8 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
                     Jogadores Reservas
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-                    {/* Goleiros Reservas */}
-                    {reservePlayers.goalkeepers.length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-sm mb-2 text-muted-foreground">GOLEIROS</h4>
-                        <div className="space-y-1">
-                          {reservePlayers.goalkeepers.map(player => (
-                            <div 
-                              key={player.id} 
-                              className={`p-2 rounded transition-colors ${
-                                swapMode 
-                                  ? `cursor-pointer hover:bg-primary/20 ${
-                                      isPlayerSelected(player.id) 
-                                        ? 'bg-primary/30 border-2 border-primary' 
-                                        : 'bg-secondary/50'
-                                    }` 
-                                  : 'bg-secondary/50'
-                              }`}
-                              onClick={() => handleReservePlayerSelect(player, 'goalkeeper')}
-                            >
-                              <span className="text-sm">{player.name}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
+                 <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {/* Zagueiros Reservas */}
                     {reservePlayers.defenders.length > 0 && (
                       <div>
