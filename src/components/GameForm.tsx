@@ -8,6 +8,9 @@ import { Separator } from "@/components/ui/separator";
 import { Player, GameEvent } from "@/types/football";
 import { DraftedTeam } from "@/hooks/useFootballData";
 import { Calendar, Plus, Target, Users, Trash2, Shield, SkipBack } from "lucide-react";
+import { VoiceCommandButton } from "@/components/VoiceCommandButton";
+import { parseVoiceCommand } from "@/utils/voiceCommandParser";
+import { useToast } from "@/components/ui/use-toast";
 
 interface GameFormProps {
   players: Player[];
@@ -29,6 +32,7 @@ export const GameForm = ({ players, draftedTeams, onAddGame }: GameFormProps) =>
   const [events, setEvents] = useState<GameEvent[]>([]);
   const [selectedPlayer, setSelectedPlayer] = useState("");
   const [eventType, setEventType] = useState<"goal" | "assist" | "own_goal" | "goal_conceded">("goal");
+  const { toast } = useToast();
   
   // Função para encontrar o time de um jogador
   const findPlayerTeam = (playerId: string): string => {
@@ -77,6 +81,38 @@ export const GameForm = ({ players, draftedTeams, onAddGame }: GameFormProps) =>
 
   const removeEvent = (index: number) => {
     setEvents(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleVoiceCommand = (command: string) => {
+    console.log('Processing voice command:', command);
+    const parsedCommand = parseVoiceCommand(command, players);
+    
+    if (parsedCommand.action === 'add_event' && parsedCommand.playerId && parsedCommand.eventType) {
+      const player = players.find(p => p.id === parsedCommand.playerId);
+      if (player) {
+        const newEvent: GameEvent = {
+          playerId: parsedCommand.playerId,
+          playerName: player.name,
+          type: parsedCommand.eventType,
+          minute: 0
+        };
+        setEvents(prev => [...prev, newEvent]);
+        
+        toast({
+          title: "Evento adicionado via comando de voz",
+          description: `${parsedCommand.eventType === 'goal' ? 'Gol' : 
+                       parsedCommand.eventType === 'assist' ? 'Assistência' : 
+                       parsedCommand.eventType === 'own_goal' ? 'Gol Contra' : 
+                       'Gol Sofrido'} de ${player.name}`,
+        });
+      }
+    } else {
+      toast({
+        title: "Comando não reconhecido",
+        description: "Tente algo como: 'adicionar gol do jogador João' ou 'gol do Manu'",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -176,10 +212,16 @@ export const GameForm = ({ players, draftedTeams, onAddGame }: GameFormProps) =>
 
           <Separator />
 
-          <div className="space-y-4">
-            <h4 className="font-semibold">Eventos do Jogo</h4>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div className="space-y-4">
+             <div className="flex items-center justify-between">
+               <h4 className="font-semibold">Eventos do Jogo</h4>
+               <VoiceCommandButton 
+                 onCommand={handleVoiceCommand}
+                 disabled={!homeTeam || !awayTeam}
+               />
+             </div>
+             
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <Select value={selectedPlayer} onValueChange={setSelectedPlayer}>
                 <SelectTrigger>
                   <SelectValue placeholder="Jogador" />
