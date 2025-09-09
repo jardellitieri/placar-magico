@@ -73,6 +73,12 @@ export const VoiceCommandButton = ({ onCommand, disabled }: VoiceCommandButtonPr
     try {
       const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
       
+      console.log('Audio blob size:', audioBlob.size);
+      
+      if (audioBlob.size === 0) {
+        throw new Error('Áudio vazio - tente gravar novamente');
+      }
+      
       // Convert blob to base64
       const reader = new FileReader();
       reader.readAsDataURL(audioBlob);
@@ -82,13 +88,22 @@ export const VoiceCommandButton = ({ onCommand, disabled }: VoiceCommandButtonPr
           const base64Audio = (reader.result as string).split(',')[1];
           
           console.log('Sending audio to transcription...');
+          console.log('Base64 audio length:', base64Audio.length);
           
           const { data, error } = await supabase.functions.invoke('voice-to-text', {
             body: { audio: base64Audio }
           });
 
+          console.log('Supabase function response:', { data, error });
+
           if (error) {
-            throw error;
+            console.error('Supabase function error:', error);
+            throw new Error(`Erro na função: ${error.message}`);
+          }
+
+          if (data?.error) {
+            console.error('Function returned error:', data.error);
+            throw new Error(`Erro do servidor: ${data.error}`);
           }
 
           if (data?.text) {
@@ -106,19 +121,29 @@ export const VoiceCommandButton = ({ onCommand, disabled }: VoiceCommandButtonPr
           console.error('Error processing transcription:', error);
           toast({
             title: "Erro",
-            description: "Erro ao processar o áudio",
+            description: error instanceof Error ? error.message : "Erro ao processar o áudio",
             variant: "destructive",
           });
         } finally {
           setIsProcessing(false);
         }
       };
+
+      reader.onerror = () => {
+        console.error('Error reading audio file');
+        setIsProcessing(false);
+        toast({
+          title: "Erro",
+          description: "Erro ao ler o arquivo de áudio",
+          variant: "destructive",
+        });
+      };
     } catch (error) {
       console.error('Error in processAudio:', error);
       setIsProcessing(false);
       toast({
         title: "Erro",
-        description: "Erro ao processar o áudio",
+        description: error instanceof Error ? error.message : "Erro ao processar o áudio",
         variant: "destructive",
       });
     }

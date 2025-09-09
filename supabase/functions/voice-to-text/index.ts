@@ -45,13 +45,23 @@ serve(async (req) => {
     const { audio } = await req.json()
     
     if (!audio) {
+      console.error('No audio data provided in request');
       throw new Error('No audio data provided')
     }
 
     console.log('Processing audio data...');
+    console.log('Audio data length:', audio.length);
+
+    // Validate OpenAI API Key
+    const openaiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiKey) {
+      console.error('OPENAI_API_KEY not found in environment');
+      throw new Error('OPENAI_API_KEY not configured');
+    }
 
     // Process audio in chunks
     const binaryAudio = processBase64Chunks(audio)
+    console.log('Binary audio length:', binaryAudio.length);
     
     // Prepare form data
     const formData = new FormData()
@@ -60,19 +70,23 @@ serve(async (req) => {
     formData.append('model', 'whisper-1')
     formData.append('language', 'pt')
 
+    console.log('Sending request to OpenAI...');
+
     // Send to OpenAI
     const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${openaiKey}`,
       },
       body: formData,
     })
 
+    console.log('OpenAI response status:', response.status);
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${errorText}`)
+      console.error('OpenAI API error:', response.status, errorText);
+      throw new Error(`OpenAI API error (${response.status}): ${errorText}`)
     }
 
     const result = await response.json()
@@ -85,8 +99,12 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Voice to text error:', error);
+    console.error('Error stack:', error.stack);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error instanceof Error ? error.stack : 'Unknown error'
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
