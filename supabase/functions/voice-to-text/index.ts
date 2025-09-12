@@ -48,7 +48,10 @@ serve(async (req) => {
     }
 
     // Process audio in chunks
-    const binaryAudio = base64ToUint8Array(audio)
+    const base64: string = typeof audio === 'string' && audio.includes(',')
+      ? (audio.split(',').pop() as string)
+      : audio;
+    const binaryAudio = base64ToUint8Array(base64)
     console.log('Binary audio length:', binaryAudio.length);
     
     // Prepare form data
