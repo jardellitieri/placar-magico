@@ -42,9 +42,12 @@ serve(async (req) => {
 
     // Validate OpenAI API Key
     const openaiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openaiKey) {
-      console.error('OPENAI_API_KEY not found in environment');
-      throw new Error('OPENAI_API_KEY not configured');
+    if (!openaiKey || !openaiKey.startsWith('sk-')) {
+      console.error('Invalid or missing OPENAI_API_KEY. It must start with "sk-".');
+      return new Response(
+        JSON.stringify({ error: 'OPENAI_API_KEY inválida ou ausente. Defina um secret válido (começa com "sk-") em Settings > Functions.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Process audio in chunks
