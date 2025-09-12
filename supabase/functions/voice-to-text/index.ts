@@ -79,8 +79,17 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
+      let parsed: any = null;
+      try { parsed = JSON.parse(errorText); } catch {}
       console.error('OpenAI API error:', response.status, errorText);
-      throw new Error(`OpenAI API error (${response.status}): ${errorText}`)
+      return new Response(
+        JSON.stringify({
+          error: 'OpenAI API error',
+          status: response.status,
+          details: parsed?.error ?? parsed ?? errorText
+        }),
+        { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const result = await response.json()
