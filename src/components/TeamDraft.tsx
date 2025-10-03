@@ -412,7 +412,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-primary">{counts.defenders.total}</p>
               <p className="text-sm font-medium mb-1">Zagueiros</p>
