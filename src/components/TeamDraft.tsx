@@ -416,15 +416,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-primary">{counts.defenders.total}</p>
               <p className="text-sm font-medium mb-1">Zagueiros</p>
-              <div className="flex justify-center gap-2 text-xs mb-2">
-                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                  Nível 1: {counts.defenders.level1}
-                </span>
-                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                  Nível 2: {counts.defenders.level2}
-                </span>
-              </div>
-              <div className="space-y-1">
+              <div className="space-y-1 mt-3">
                 <div className="text-xs text-left">
                   <p className="font-medium text-foreground mb-1">Nível 1:</p>
                   {getPlayersByPosition("defender").filter(p => p.level === 1).map(player => (
@@ -442,15 +434,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-primary">{counts.midfielders.total}</p>
               <p className="text-sm font-medium mb-1">Meio-campo</p>
-              <div className="flex justify-center gap-2 text-xs mb-2">
-                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                  Nível 1: {counts.midfielders.level1}
-                </span>
-                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                  Nível 2: {counts.midfielders.level2}
-                </span>
-              </div>
-              <div className="space-y-1">
+              <div className="space-y-1 mt-3">
                 <div className="text-xs text-left">
                   <p className="font-medium text-foreground mb-1">Nível 1:</p>
                   {getPlayersByPosition("midfielder").filter(p => p.level === 1).map(player => (
@@ -468,15 +452,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-primary">{counts.attackingMidfielders.total}</p>
               <p className="text-sm font-medium mb-1">Meia-atacantes</p>
-              <div className="flex justify-center gap-2 text-xs mb-2">
-                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                  Nível 1: {counts.attackingMidfielders.level1}
-                </span>
-                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                  Nível 2: {counts.attackingMidfielders.level2}
-                </span>
-              </div>
-              <div className="space-y-1">
+              <div className="space-y-1 mt-3">
                 <div className="text-xs text-left">
                   <p className="font-medium text-foreground mb-1">Nível 1:</p>
                   {getPlayersByPosition("attacking_midfielder").filter(p => p.level === 1).map(player => (
@@ -494,15 +470,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-primary">{counts.pivots.total}</p>
               <p className="text-sm font-medium mb-1">Pivôs</p>
-              <div className="flex justify-center gap-2 text-xs mb-2">
-                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                  Nível 1: {counts.pivots.level1}
-                </span>
-                <span className="bg-green-100 text-green-800 px-2 py-1 rounded">
-                  Nível 2: {counts.pivots.level2}
-                </span>
-              </div>
-              <div className="space-y-1">
+              <div className="space-y-1 mt-3">
                 <div className="text-xs text-left">
                   <p className="font-medium text-foreground mb-1">Nível 1:</p>
                   {getPlayersByPosition("pivot").filter(p => p.level === 1).map(player => (
