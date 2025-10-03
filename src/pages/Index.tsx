@@ -129,6 +129,11 @@ const Index = () => {
   };
 
   const playerStats = getPlayerStats();
+  
+  // Sort players alphabetically by name
+  const sortedPlayers = [...players].sort((a, b) => 
+    a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' })
+  );
 
   const handleClearTeams = async () => {
     try {
@@ -256,7 +261,7 @@ const Index = () => {
               </div>
             ) : (
               <PlayerCard
-                players={players}
+                players={sortedPlayers}
                 onRemovePlayer={handleRemovePlayer}
                 onUpdatePlayer={updatePlayer}
               />
