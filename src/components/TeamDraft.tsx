@@ -416,7 +416,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-primary">{counts.defenders.total}</p>
               <p className="text-sm font-medium mb-1">Zagueiros</p>
-              <div className="space-y-1 mt-3">
+              <div className="grid grid-cols-2 gap-3 mt-3">
                 <div className="text-xs text-left">
                   <p className="font-medium text-foreground mb-1">Nível 1:</p>
                   {getPlayersByPosition("defender").filter(p => p.level === 1).map(player => (
@@ -434,7 +434,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-primary">{counts.midfielders.total}</p>
               <p className="text-sm font-medium mb-1">Meio-campo</p>
-              <div className="space-y-1 mt-3">
+              <div className="grid grid-cols-2 gap-3 mt-3">
                 <div className="text-xs text-left">
                   <p className="font-medium text-foreground mb-1">Nível 1:</p>
                   {getPlayersByPosition("midfielder").filter(p => p.level === 1).map(player => (
@@ -452,7 +452,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-primary">{counts.attackingMidfielders.total}</p>
               <p className="text-sm font-medium mb-1">Meia-atacantes</p>
-              <div className="space-y-1 mt-3">
+              <div className="grid grid-cols-2 gap-3 mt-3">
                 <div className="text-xs text-left">
                   <p className="font-medium text-foreground mb-1">Nível 1:</p>
                   {getPlayersByPosition("attacking_midfielder").filter(p => p.level === 1).map(player => (
@@ -470,7 +470,7 @@ export const TeamDraft = ({ players, draftedTeams, onSaveDraftedTeams, onClearDr
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-2xl font-bold text-primary">{counts.pivots.total}</p>
               <p className="text-sm font-medium mb-1">Pivôs</p>
-              <div className="space-y-1 mt-3">
+              <div className="grid grid-cols-2 gap-3 mt-3">
                 <div className="text-xs text-left">
                   <p className="font-medium text-foreground mb-1">Nível 1:</p>
                   {getPlayersByPosition("pivot").filter(p => p.level === 1).map(player => (
