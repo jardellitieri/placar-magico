@@ -182,7 +182,7 @@ const Index = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <img src={ppfcLogo} alt="PPFC Logo" className="h-16 w-16 object-contain" />
+            <img src={ppfcLogo} alt="PPFC Logo" className="h-24 w-24 object-contain" />
             <div>
               <h1 className="text-4xl font-bold text-field mb-2">PPFC</h1>
               <p className="text-lg text-muted-foreground">
