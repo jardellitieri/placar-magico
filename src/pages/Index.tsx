@@ -1,4 +1,5 @@
 import { Users, Calendar, Shuffle, Trophy, Plus, Download, RotateCcw, LogOut, Shield } from "lucide-react";
+import ppfcLogo from "@/assets/ppfc-logo.jpeg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -180,11 +181,14 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-field mb-2">⚽ Controle - PPFC</h1>
-            <p className="text-lg text-muted-foreground">
-              Gerencie jogadores, registre jogos e acompanhe estatísticas
-            </p>
+          <div className="flex items-center gap-4">
+            <img src={ppfcLogo} alt="PPFC Logo" className="h-16 w-16 object-contain" />
+            <div>
+              <h1 className="text-4xl font-bold text-field mb-2">PPFC</h1>
+              <p className="text-lg text-muted-foreground">
+                Gerencie jogadores, registre jogos e acompanhe estatísticas
+              </p>
+            </div>
           </div>
           <Button variant="outline" onClick={signOut} className="flex items-center gap-2">
             <LogOut className="h-4 w-4" />
